@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>申万二级盘面雷达 2026-05-21</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #5c6670;
+      --paper: #f5f2eb;
+      --panel: #fffdf8;
+      --line: #d8d0c1;
+      --teal: #0f766e;
+      --green: #2e7d32;
+      --amber: #a16207;
+      --red: #b42318;
+      --blue: #2457a6;
+    }
+    * { box-sizing: border-box; letter-spacing: 0; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", sans-serif; }
+    main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 56px; }
+    header { display: grid; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 22px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 34px; }
+    h2 { font-size: 21px; margin: 28px 0 12px; }
+    a { color: inherit; }
+    .lede { color: var(--muted); max-width: 850px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin-top: 18px; }
+    .summary div, .note { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .summary span, .metric-grid span { color: var(--muted); display: block; font-size: 12px; }
+    .summary strong { font-size: 25px; }
+    .split { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+    .table-wrap { overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+    table { width: 100%; min-width: 1040px; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-size: 12px; background: #eee6d8; position: sticky; top: 0; }
+    td:nth-child(4), td:nth-child(5), td:nth-child(6), td:nth-child(7), td:nth-child(8) { font-variant-numeric: tabular-nums; }
+    .badge { display: inline-flex; align-items: center; min-height: 24px; border-radius: 999px; padding: 2px 9px; font-size: 12px; white-space: nowrap; }
+    .watch { background: #ece8df; color: #4b5563; }
+    .startup { background: #d7f0e9; color: var(--teal); }
+    .trend { background: #dbe8fb; color: var(--blue); }
+    .hot { background: #fff0c7; color: var(--amber); }
+    .risk, .avoid { background: #fbe0dd; color: var(--red); }
+    .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .sector-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+    .card-title { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+    .card-title strong { font-size: 34px; line-height: 1; color: var(--teal); }
+    .card-title p, .verdict, footer { color: var(--muted); }
+    .verdict { min-height: 44px; margin: 12px 0; }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .metric-grid div { border-top: 1px solid var(--line); padding-top: 8px; min-width: 0; }
+    .metric-grid b { display: block; overflow-wrap: anywhere; }
+    .note { margin-top: 14px; }
+    footer { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 14px; }
+    @media (max-width: 720px) {
+      main { padding: 18px 12px 40px; }
+      h1 { font-size: 28px; }
+      .split { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>申万二级盘面雷达</h1>
+    <p class="lede">2026-05-21 | 盘面先发现，宽度验真假，财务景气先做长期确认。资金持续性与公告催化层尚未接入，因此本页先把“确认”和“反证”摊开给你看。</p>
+    <section class="summary"><div><span>潜伏观察</span><strong>65</strong></div><div><span>早期启动</span><strong>0</strong></div><div><span>趋势确认</span><strong>2</strong></div><div><span>主升扩散</span><strong>0</strong></div><div><span>高位拥挤</span><strong>21</strong></div><div><span>钝化转弱</span><strong>6</strong></div><div><span>退潮回避</span><strong>30</strong></div></section>
+  </header>
+  <section>
+    <h2>今日结论</h2>
+    <div class="split">
+      <div>
+        <h2>启动线索榜</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>赛道</th><th>阶段</th><th>动作</th><th>雷达</th><th>启动</th><th>趋势</th><th>宽度</th><th>财务</th><th>过热风险</th><th>确认</th><th>反证</th></tr></thead>
+          <tbody><tr><td><a href="#sector-801113.SI">小家电</a></td><td><span class="badge watch">潜伏观察</span></td><td>观察验证</td><td>59</td><td>87</td><td>56</td><td>35</td><td>45</td><td>70</td><td>盘面排名抬升</td><td>宽度未跟上</td></tr><tr><td><a href="#sector-801111.SI">白色家电</a></td><td><span class="badge trend">趋势确认</span></td><td>继续跟踪核心</td><td>64</td><td>69</td><td>72</td><td>44</td><td>53</td><td>55</td><td>盘面排名抬升</td><td>暂无显著反证</td></tr><tr><td><a href="#sector-801093.SI">汽车零部件</a></td><td><span class="badge watch">潜伏观察</span></td><td>观察验证</td><td>61</td><td>65</td><td>79</td><td>34</td><td>52</td><td>72</td><td>盘面排名抬升</td><td>宽度未跟上</td></tr><tr><td><a href="#sector-801112.SI">黑色家电</a></td><td><span class="badge watch">潜伏观察</span></td><td>观察验证</td><td>60</td><td>60</td><td>65</td><td>48</td><td>57</td><td>70</td><td>宽度开始跟；盘面排名抬升</td><td>龙头独舞风险</td></tr><tr><td><a href="#sector-801132.SI">服装家纺</a></td><td><span class="badge watch">潜伏观察</span></td><td>观察验证</td><td>55</td><td>56</td><td>61</td><td>40</td><td>67</td><td>71</td><td>财务景气支持</td><td>龙头独舞风险</td></tr><tr><td><a href="#sector-801161.SI">电力</a></td><td><span class="badge trend">趋势确认</span></td><td>继续跟踪核心</td><td>59</td><td>47</td><td>79</td><td>48</td><td>55</td><td>72</td><td>宽度开始跟</td><td>龙头独舞风险</td></tr></tbody>
+        </table></div>
+      </div>
+      <div>
+        <h2>过热与钝化警报</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>赛道</th><th>阶段</th><th>动作</th><th>雷达</th><th>启动</th><th>趋势</th><th>宽度</th><th>财务</th><th>过热风险</th><th>钝化风险</th><th>确认</th><th>反证</th></tr></thead>
+          <tbody><tr><td><a href="#sector-801033.SI">化学原料</a></td><td><span class="badge risk">钝化转弱</span></td><td>收紧风控</td><td>36</td><td>18</td><td>46</td><td>22</td><td>55</td><td>45</td><td>65</td><td>盘面先动，确认不足</td><td>宽度未跟上</td></tr><tr><td><a href="#sector-801738.SI">电网设备</a></td><td><span class="badge risk">钝化转弱</span></td><td>收紧风控</td><td>47</td><td>33</td><td>76</td><td>33</td><td>51</td><td>67</td><td>63</td><td>盘面先动，确认不足</td><td>宽度未跟上；龙头独舞风险</td></tr><tr><td><a href="#sector-801736.SI">风电设备</a></td><td><span class="badge risk">钝化转弱</span></td><td>收紧风控</td><td>40</td><td>18</td><td>63</td><td>23</td><td>47</td><td>52</td><td>59</td><td>盘面先动，确认不足</td><td>宽度未跟上；龙头独舞风险</td></tr><tr><td><a href="#sector-801231.SI">综合Ⅱ</a></td><td><span class="badge risk">钝化转弱</span></td><td>收紧风控</td><td>39</td><td>36</td><td>60</td><td>11</td><td>57</td><td>81</td><td>55</td><td>利润覆盖改善</td><td>宽度未跟上；财务覆盖不足；短期热度高</td></tr><tr><td><a href="#sector-801054.SI">小金属</a></td><td><span class="badge risk">钝化转弱</span></td><td>收紧风控</td><td>41</td><td>26</td><td>56</td><td>24</td><td>67</td><td>64</td><td>55</td><td>财务景气支持</td><td>宽度未跟上</td></tr><tr><td><a href="#sector-801141.SI">包装印刷</a></td><td><span class="badge risk">钝化转弱</span></td><td>收紧风控</td><td>43</td><td>30</td><td>61</td><td>23</td><td>64</td><td>63</td><td>55</td><td>财务景气支持</td><td>宽度未跟上</td></tr><tr><td><a href="#sector-801101.SI">计算机设备</a></td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>58</td><td>77</td><td>69</td><td>31</td><td>50</td><td>78</td><td>19</td><td>盘面排名抬升</td><td>宽度未跟上；龙头独舞风险；短期热度高</td></tr><tr><td><a href="#sector-801051.SI">金属新材料</a></td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>63</td><td>69</td><td>80</td><td>32</td><td>67</td><td>79</td><td>16</td><td>财务景气支持；盘面排名抬升</td><td>宽度未跟上；龙头独舞风险；短期热度高</td></tr><tr><td><a href="#sector-801737.SI">电池</a></td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>58</td><td>46</td><td>78</td><td>44</td><td>66</td><td>81</td><td>12</td><td>财务景气支持</td><td>龙头独舞风险；短期热度高</td></tr><tr><td><a href="#sector-801733.SI">其他电源设备Ⅱ</a></td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>58</td><td>42</td><td>82</td><td>45</td><td>57</td><td>80</td><td>8</td><td>宽度开始跟；利润覆盖改善</td><td>龙头独舞风险；短期热度高</td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+    <p class="note">分数口径：`启动`、`趋势`、`宽度`、`财务` 越高越支持研究；`过热风险` 与 `钝化风险` 越高越需要谨慎。动作口径：`优先挖掘` 适合继续下钻个股；`持有但不追` 代表趋势仍可能延续但新开仓赔率下降。</p>
+  </section>
+  <section>
+    <h2>阶段迁移</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>赛道</th><th>20交易日前</th><th>当前</th><th>动作</th><th>迁移证据</th></tr></thead>
+      <tbody><tr><td>电机Ⅱ</td><td>潜伏观察</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>60日相对排名改善快；成交关注度升温；20/60/120日趋势同向</td></tr><tr><td>家电零部件Ⅱ</td><td>潜伏观察</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>60日相对排名改善快；成交关注度升温；20/60/120日趋势同向</td></tr><tr><td>光学光电子</td><td>主升扩散</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>20/60/120日趋势同向；短期热度偏高</td></tr><tr><td>通用设备</td><td>趋势确认</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>20/60/120日趋势同向；短期热度偏高</td></tr><tr><td>白色家电</td><td>潜伏观察</td><td><span class="badge trend">趋势确认</span></td><td>继续跟踪核心</td><td>60日相对排名改善快；20/60/120日趋势同向</td></tr><tr><td>金属新材料</td><td>潜伏观察</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>60日相对排名改善快；20/60/120日趋势同向；短期热度偏高</td></tr><tr><td>通信服务</td><td>潜伏观察</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>60日相对排名改善快；短期热度偏高；短线弱于中期趋势</td></tr><tr><td>装修装饰Ⅱ</td><td>趋势确认</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>成交关注度升温；短期热度偏高</td></tr><tr><td>计算机设备</td><td>潜伏观察</td><td><span class="badge hot">高位拥挤</span></td><td>持有但不追</td><td>60日相对排名改善快；成交关注度升温；短期热度偏高</td></tr><tr><td>照明设备Ⅱ</td><td>高位拥挤</td><td><span class="badge watch">潜伏观察</span></td><td>观察验证</td><td>短线弱于中期趋势</td></tr><tr><td>饮料乳品</td><td>退潮回避</td><td><span class="badge watch">潜伏观察</span></td><td>观察验证</td><td>60日相对排名改善快；财务景气有支持</td></tr><tr><td>能源金属</td><td>高位拥挤</td><td><span class="badge watch">潜伏观察</span></td><td>观察验证</td><td>财务景气有支持</td></tr></tbody>
+    </table></div>
+  </section>
+  <section>
+    <h2>重点赛道卡片</h2>
+    <div class="cards">
+            <article class="sector-card" id="sector-801731.SI">
+              <div class="card-title">
+                <div>
+                  <h3>电机Ⅱ</h3>
+                  <p>801731.SI | <span class="badge hot">高位拥挤</span> | 持有但不追</p>
+                </div>
+                <strong>72</strong>
+              </div>
+              <p class="verdict">60日相对排名改善快；成交关注度升温；20/60/120日趋势同向</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>96</b></div>
+                <div><span>趋势</span><b>77</b></div>
+                <div><span>宽度</span><b>57</b></div>
+                <div><span>财务</span><b>59</b></div>
+                <div><span>过热</span><b>83</b></div>
+                <div><span>钝化</span><b>3</b></div>
+                <div><span>站上60日线</span><b>75.0%</b></div>
+                <div><span>利润正增长</span><b>50.0%</b></div>
+                <div><span>确认</span><b>宽度开始跟；盘面排名抬升</b></div>
+                <div><span>反证</span><b>龙头独舞风险；短期热度高</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801116.SI">
+              <div class="card-title">
+                <div>
+                  <h3>家电零部件Ⅱ</h3>
+                  <p>801116.SI | <span class="badge hot">高位拥挤</span> | 持有但不追</p>
+                </div>
+                <strong>70</strong>
+              </div>
+              <p class="verdict">60日相对排名改善快；成交关注度升温；20/60/120日趋势同向</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>93</b></div>
+                <div><span>趋势</span><b>89</b></div>
+                <div><span>宽度</span><b>44</b></div>
+                <div><span>财务</span><b>46</b></div>
+                <div><span>过热</span><b>90</b></div>
+                <div><span>钝化</span><b>2</b></div>
+                <div><span>站上60日线</span><b>51.4%</b></div>
+                <div><span>利润正增长</span><b>31.4%</b></div>
+                <div><span>确认</span><b>盘面排名抬升</b></div>
+                <div><span>反证</span><b>龙头独舞风险；短期热度高</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801113.SI">
+              <div class="card-title">
+                <div>
+                  <h3>小家电</h3>
+                  <p>801113.SI | <span class="badge watch">潜伏观察</span> | 观察验证</p>
+                </div>
+                <strong>59</strong>
+              </div>
+              <p class="verdict">60日相对排名改善快；成交关注度升温</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>87</b></div>
+                <div><span>趋势</span><b>56</b></div>
+                <div><span>宽度</span><b>35</b></div>
+                <div><span>财务</span><b>45</b></div>
+                <div><span>过热</span><b>70</b></div>
+                <div><span>钝化</span><b>10</b></div>
+                <div><span>站上60日线</span><b>45.5%</b></div>
+                <div><span>利润正增长</span><b>27.3%</b></div>
+                <div><span>确认</span><b>盘面排名抬升</b></div>
+                <div><span>反证</span><b>宽度未跟上</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801081.SI">
+              <div class="card-title">
+                <div>
+                  <h3>半导体</h3>
+                  <p>801081.SI | <span class="badge hot">高位拥挤</span> | 持有但不追</p>
+                </div>
+                <strong>76</strong>
+              </div>
+              <p class="verdict">60日相对排名改善快；成交关注度升温；20/60/120日趋势同向</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>78</b></div>
+                <div><span>趋势</span><b>98</b></div>
+                <div><span>宽度</span><b>74</b></div>
+                <div><span>财务</span><b>62</b></div>
+                <div><span>过热</span><b>98</b></div>
+                <div><span>钝化</span><b>0</b></div>
+                <div><span>站上60日线</span><b>86.9%</b></div>
+                <div><span>利润正增长</span><b>57.1%</b></div>
+                <div><span>确认</span><b>宽度扩散；财务景气支持；盘面排名抬升</b></div>
+                <div><span>反证</span><b>龙头独舞风险；短期热度高</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801082.SI">
+              <div class="card-title">
+                <div>
+                  <h3>其他电子Ⅱ</h3>
+                  <p>801082.SI | <span class="badge hot">高位拥挤</span> | 持有但不追</p>
+                </div>
+                <strong>72</strong>
+              </div>
+              <p class="verdict">60日相对排名改善快；成交关注度升温；20/60/120日趋势同向</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>77</b></div>
+                <div><span>趋势</span><b>92</b></div>
+                <div><span>宽度</span><b>59</b></div>
+                <div><span>财务</span><b>58</b></div>
+                <div><span>过热</span><b>91</b></div>
+                <div><span>钝化</span><b>2</b></div>
+                <div><span>站上60日线</span><b>67.6%</b></div>
+                <div><span>利润正增长</span><b>55.9%</b></div>
+                <div><span>确认</span><b>宽度开始跟；利润覆盖改善；盘面排名抬升</b></div>
+                <div><span>反证</span><b>龙头独舞风险；短期热度高</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801101.SI">
+              <div class="card-title">
+                <div>
+                  <h3>计算机设备</h3>
+                  <p>801101.SI | <span class="badge hot">高位拥挤</span> | 持有但不追</p>
+                </div>
+                <strong>58</strong>
+              </div>
+              <p class="verdict">60日相对排名改善快；成交关注度升温；短期热度偏高</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>77</b></div>
+                <div><span>趋势</span><b>69</b></div>
+                <div><span>宽度</span><b>31</b></div>
+                <div><span>财务</span><b>50</b></div>
+                <div><span>过热</span><b>78</b></div>
+                <div><span>钝化</span><b>19</b></div>
+                <div><span>站上60日线</span><b>37.8%</b></div>
+                <div><span>利润正增长</span><b>49.5%</b></div>
+                <div><span>确认</span><b>盘面排名抬升</b></div>
+                <div><span>反证</span><b>宽度未跟上；龙头独舞风险；短期热度高</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801085.SI">
+              <div class="card-title">
+                <div>
+                  <h3>消费电子</h3>
+                  <p>801085.SI | <span class="badge hot">高位拥挤</span> | 持有但不追</p>
+                </div>
+                <strong>68</strong>
+              </div>
+              <p class="verdict">60日相对排名改善快；成交关注度升温；20/60/120日趋势同向</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>73</b></div>
+                <div><span>趋势</span><b>93</b></div>
+                <div><span>宽度</span><b>50</b></div>
+                <div><span>财务</span><b>49</b></div>
+                <div><span>过热</span><b>94</b></div>
+                <div><span>钝化</span><b>2</b></div>
+                <div><span>站上60日线</span><b>60.6%</b></div>
+                <div><span>利润正增长</span><b>38.4%</b></div>
+                <div><span>确认</span><b>宽度开始跟；盘面排名抬升</b></div>
+                <div><span>反证</span><b>龙头独舞风险；短期热度高</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801086.SI">
+              <div class="card-title">
+                <div>
+                  <h3>电子化学品Ⅱ</h3>
+                  <p>801086.SI | <span class="badge hot">高位拥挤</span> | 持有但不追</p>
+                </div>
+                <strong>77</strong>
+              </div>
+              <p class="verdict">成交关注度升温；20/60/120日趋势同向；短期热度偏高</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>72</b></div>
+                <div><span>趋势</span><b>99</b></div>
+                <div><span>宽度</span><b>81</b></div>
+                <div><span>财务</span><b>65</b></div>
+                <div><span>过热</span><b>98</b></div>
+                <div><span>钝化</span><b>0</b></div>
+                <div><span>站上60日线</span><b>94.3%</b></div>
+                <div><span>利润正增长</span><b>62.9%</b></div>
+                <div><span>确认</span><b>宽度扩散；财务景气支持</b></div>
+                <div><span>反证</span><b>龙头独舞风险；短期热度高</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801963.SI">
+              <div class="card-title">
+                <div>
+                  <h3>炼化及贸易</h3>
+                  <p>801963.SI | <span class="badge watch">潜伏观察</span> | 观察验证</p>
+                </div>
+                <strong>34</strong>
+              </div>
+              <p class="verdict">财务景气有支持；强势后质量转弱</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>19</b></div>
+                <div><span>趋势</span><b>39</b></div>
+                <div><span>宽度</span><b>21</b></div>
+                <div><span>财务</span><b>64</b></div>
+                <div><span>过热</span><b>47</b></div>
+                <div><span>钝化</span><b>65</b></div>
+                <div><span>站上60日线</span><b>20.0%</b></div>
+                <div><span>利润正增长</span><b>70.0%</b></div>
+                <div><span>确认</span><b>财务景气支持</b></div>
+                <div><span>反证</span><b>宽度未跟上</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801033.SI">
+              <div class="card-title">
+                <div>
+                  <h3>化学原料</h3>
+                  <p>801033.SI | <span class="badge risk">钝化转弱</span> | 收紧风控</p>
+                </div>
+                <strong>36</strong>
+              </div>
+              <p class="verdict">强势后质量转弱</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>18</b></div>
+                <div><span>趋势</span><b>46</b></div>
+                <div><span>宽度</span><b>22</b></div>
+                <div><span>财务</span><b>55</b></div>
+                <div><span>过热</span><b>45</b></div>
+                <div><span>钝化</span><b>65</b></div>
+                <div><span>站上60日线</span><b>22.0%</b></div>
+                <div><span>利润正增长</span><b>50.8%</b></div>
+                <div><span>确认</span><b>盘面先动，确认不足</b></div>
+                <div><span>反证</span><b>宽度未跟上</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801043.SI">
+              <div class="card-title">
+                <div>
+                  <h3>冶钢原料</h3>
+                  <p>801043.SI | <span class="badge watch">潜伏观察</span> | 观察验证</p>
+                </div>
+                <strong>30</strong>
+              </div>
+              <p class="verdict">强势后质量转弱</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>13</b></div>
+                <div><span>趋势</span><b>37</b></div>
+                <div><span>宽度</span><b>12</b></div>
+                <div><span>财务</span><b>58</b></div>
+                <div><span>过热</span><b>44</b></div>
+                <div><span>钝化</span><b>65</b></div>
+                <div><span>站上60日线</span><b>11.1%</b></div>
+                <div><span>利润正增长</span><b>66.7%</b></div>
+                <div><span>确认</span><b>利润覆盖改善</b></div>
+                <div><span>反证</span><b>宽度未跟上</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801032.SI">
+              <div class="card-title">
+                <div>
+                  <h3>化学纤维</h3>
+                  <p>801032.SI | <span class="badge watch">潜伏观察</span> | 观察验证</p>
+                </div>
+                <strong>33</strong>
+              </div>
+              <p class="verdict">强势后质量转弱</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>17</b></div>
+                <div><span>趋势</span><b>37</b></div>
+                <div><span>宽度</span><b>20</b></div>
+                <div><span>财务</span><b>61</b></div>
+                <div><span>过热</span><b>43</b></div>
+                <div><span>钝化</span><b>65</b></div>
+                <div><span>站上60日线</span><b>25.0%</b></div>
+                <div><span>利润正增长</span><b>60.7%</b></div>
+                <div><span>确认</span><b>利润覆盖改善</b></div>
+                <div><span>反证</span><b>宽度未跟上</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801962.SI">
+              <div class="card-title">
+                <div>
+                  <h3>油服工程</h3>
+                  <p>801962.SI | <span class="badge watch">潜伏观察</span> | 观察验证</p>
+                </div>
+                <strong>27</strong>
+              </div>
+              <p class="verdict">强势后质量转弱</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>10</b></div>
+                <div><span>趋势</span><b>34</b></div>
+                <div><span>宽度</span><b>18</b></div>
+                <div><span>财务</span><b>33</b></div>
+                <div><span>过热</span><b>41</b></div>
+                <div><span>钝化</span><b>65</b></div>
+                <div><span>站上60日线</span><b>7.1%</b></div>
+                <div><span>利润正增长</span><b>21.4%</b></div>
+                <div><span>确认</span><b>盘面先动，确认不足</b></div>
+                <div><span>反证</span><b>宽度未跟上；财务景气偏弱</b></div>
+              </div>
+            </article>
+            
+            <article class="sector-card" id="sector-801724.SI">
+              <div class="card-title">
+                <div>
+                  <h3>专业工程</h3>
+                  <p>801724.SI | <span class="badge watch">潜伏观察</span> | 观察验证</p>
+                </div>
+                <strong>33</strong>
+              </div>
+              <p class="verdict">强势后质量转弱</p>
+              <div class="metric-grid">
+                <div><span>启动</span><b>15</b></div>
+                <div><span>趋势</span><b>42</b></div>
+                <div><span>宽度</span><b>24</b></div>
+                <div><span>财务</span><b>42</b></div>
+                <div><span>过热</span><b>40</b></div>
+                <div><span>钝化</span><b>65</b></div>
+                <div><span>站上60日线</span><b>27.5%</b></div>
+                <div><span>利润正增长</span><b>45.2%</b></div>
+                <div><span>确认</span><b>盘面先动，确认不足</b></div>
+                <div><span>反证</span><b>宽度未跟上；龙头独舞风险；财务景气偏弱</b></div>
+              </div>
+            </article>
+            </div>
+  </section>
+  <footer>
+    导出表位于 `exports/`。基准使用 申万Ａ指；宽度按当前申万二级成分股扩散度衡量；财务摘要按最近两个可得报告期的成分股财务指标聚合；资金与消息证据层待接入。本报告用于研究和仓位复盘，不替代交易纪律。
+  </footer>
+</main>
+</body>
+</html>

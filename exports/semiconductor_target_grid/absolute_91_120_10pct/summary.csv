@@ -1,0 +1,2 @@
+target,target_kind,horizon_start,horizon_end,target_return,train_start,test_start,available_label_start,available_label_end,all_labeled_samples,all_labeled_event_rate,walk_forward_test_samples,walk_forward_test_event_rate
+mean close of trading days 91-120 vs same-day close >= 10%,absolute,91,120,0.1,20180102,20220104,2018-01-02,2025-11-18,1911,0.4306645735217164,938,0.302771855010661
