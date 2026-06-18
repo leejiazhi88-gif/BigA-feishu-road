@@ -27,6 +27,14 @@ DEFAULT_FEISHU_ENV = "/Users/fuguiplus/Documents/Codex/2026-04-30/new-chat/xiaon
 DEFAULT_WIKI_URL = "https://my.feishu.cn/wiki/UxDvwwezLihFS1kVmhHcqwypnQc"
 
 
+QUARTER_PROFIT_YEARS = (2026, 2027, 2028)
+QUARTER_PROFIT_HEADERS = [
+    f"{year}Q{quarter}净利润(亿元)"
+    for year in QUARTER_PROFIT_YEARS
+    for quarter in range(1, 5)
+]
+
+
 HEADERS = [
     "名称",
     "市场",
@@ -58,7 +66,7 @@ HEADERS = [
     "预测来源",
     "数据状态",
     "备注",
-]
+] + QUARTER_PROFIT_HEADERS
 
 SEGMENT_ORDER = {
     "GPU/CPU/NVLink/核心芯片": 1,
@@ -72,6 +80,8 @@ SEGMENT_ORDER = {
     "MLCC/被动件/结构件": 9,
     "液冷": 10,
     "算力服务/IDC/云": 90,
+    "AI源头资源": 91,
+    "电力类": 92,
     "非Rubin直接链/AI应用": 99,
 }
 
@@ -84,6 +94,8 @@ BASE_SEGMENT_TO_RUBIN_CHAIN = {
     "电源": "电源/配电/BBU",
     "液冷": "液冷",
     "MLCC": "MLCC/被动件/结构件",
+    "AI源头资源": "AI源头资源",
+    "电力类": "电力类",
     "模型/应用": "非Rubin直接链/AI应用",
     "端侧AI/机器人": "非Rubin直接链/AI应用",
 }
@@ -149,6 +161,21 @@ AI_STOCKS: List[Dict[str, str]] = [
     {"market": "A股", "code": "300499.SZ", "segment": "液冷", "theme": "液冷", "role": "服务器液冷设备"},
     {"market": "A股", "code": "002335.SZ", "segment": "电源", "theme": "UPS/数据中心电源", "role": "数据中心电源系统"},
     {"market": "A股", "code": "300274.SZ", "segment": "电源", "theme": "储能/电源", "role": "算力基础设施能源侧"},
+    # AI upstream resources and power operators.
+    {"market": "A股", "code": "601899.SH", "segment": "AI源头资源", "theme": "铜/金/锂等资源", "role": "铜金矿资源龙头，AI电力与数据中心铜需求受益"},
+    {"market": "A股", "code": "603993.SH", "segment": "AI源头资源", "theme": "铜/钴/钼资源", "role": "铜钴钼资源平台，电气化与算力基建上游"},
+    {"market": "A股", "code": "601600.SH", "segment": "AI源头资源", "theme": "铝资源/电解铝", "role": "铝资源与电解铝龙头，电网和数据中心材料上游"},
+    {"market": "A股", "code": "600489.SH", "segment": "AI源头资源", "theme": "贵金属/资源", "role": "贵金属资源龙头，资源品配置标的"},
+    {"market": "A股", "code": "002460.SZ", "segment": "AI源头资源", "theme": "锂资源", "role": "锂资源与电池材料，储能链上游"},
+    {"market": "A股", "code": "002466.SZ", "segment": "AI源头资源", "theme": "锂资源", "role": "锂资源龙头，储能和电力系统上游"},
+    {"market": "A股", "code": "600900.SH", "segment": "电力类", "theme": "水电/绿电", "role": "水电运营龙头，AI数据中心长期电力底座"},
+    {"market": "A股", "code": "601985.SH", "segment": "电力类", "theme": "核电", "role": "核电运营龙头，稳定基荷电力"},
+    {"market": "A股", "code": "003816.SZ", "segment": "电力类", "theme": "核电", "role": "核电运营商，稳定低碳电力供给"},
+    {"market": "A股", "code": "600011.SH", "segment": "电力类", "theme": "火电/综合电力", "role": "大型火电与综合能源运营商"},
+    {"market": "A股", "code": "600795.SH", "segment": "电力类", "theme": "火电/新能源", "role": "火电与新能源运营，电力需求增长受益"},
+    {"market": "A股", "code": "600027.SH", "segment": "电力类", "theme": "火电/综合电力", "role": "大型综合电力运营商"},
+    {"market": "A股", "code": "600886.SH", "segment": "电力类", "theme": "水电/火电", "role": "水火电综合运营，稳定电力资产"},
+    {"market": "A股", "code": "600905.SH", "segment": "电力类", "theme": "新能源发电", "role": "风光新能源运营，绿电供给侧标的"},
     # Applications and models.
     {"market": "A股", "code": "002230.SZ", "segment": "模型/应用", "theme": "大模型/语音AI", "role": "中文语音与行业大模型"},
     {"market": "A股", "code": "300418.SZ", "segment": "模型/应用", "theme": "AIGC/海外应用", "role": "AI应用与内容生成"},
@@ -444,6 +471,18 @@ def fmt_num(value: Optional[float], digits: int = 1):
     return round(float(value), digits)
 
 
+def fmt_num_value(value: object, digits: int = 1):
+    if value == "" or value is None:
+        return ""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return ""
+    if not np.isfinite(number):
+        return ""
+    return round(number, digits)
+
+
 def fmt_int(value: Optional[float]):
     if value is None or pd.isna(value) or not np.isfinite(value):
         return ""
@@ -481,7 +520,181 @@ def actual_profit_yi(income: pd.DataFrame, year: int) -> Optional[float]:
     return value if np.isfinite(value) else None
 
 
+def actual_cumulative_profit_yi(income: pd.DataFrame) -> Dict[str, float]:
+    if income.empty:
+        return {}
+    frame = income[pd.notna(income.get("n_income_attr_p"))].copy()
+    if frame.empty:
+        return {}
+    frame["_report_rank"] = np.where(frame.get("report_type").astype(str) == "1", 0, 1)
+    frame = frame.sort_values(["end_date", "_report_rank", "f_ann_date", "ann_date"], ascending=[True, True, False, False])
+    frame = frame.drop_duplicates("end_date", keep="last")
+    result: Dict[str, float] = {}
+    for _, row in frame.iterrows():
+        end_date = str(row["end_date"])
+        if len(end_date) != 8:
+            continue
+        value = float(row["n_income_attr_p"] / 100000000.0)
+        if np.isfinite(value):
+            result[end_date] = value
+    return result
+
+
+def actual_quarter_profit_yi(income: pd.DataFrame) -> Dict[str, float]:
+    cumulative = actual_cumulative_profit_yi(income)
+    result: Dict[str, float] = {}
+    quarter_end_month_day = {1: "0331", 2: "0630", 3: "0930", 4: "1231"}
+    for year in range(2024, 2029):
+        previous = 0.0
+        for quarter in range(1, 5):
+            end_date = f"{year}{quarter_end_month_day[quarter]}"
+            cumulative_value = cumulative.get(end_date)
+            if cumulative_value is None:
+                continue
+            quarter_value = cumulative_value - previous
+            result[f"{year}Q{quarter}"] = quarter_value
+            previous = cumulative_value
+    return result
+
+
+def forecast_quarter_profit_yi(report: pd.DataFrame) -> Dict[str, float]:
+    if report.empty or "quarter" not in report.columns:
+        return {}
+    frame = report[pd.notna(report.get("np"))].copy()
+    if frame.empty:
+        return {}
+    frame["quarter"] = frame["quarter"].astype(str)
+    result: Dict[str, float] = {}
+    for quarter, subset in frame.groupby("quarter"):
+        if not quarter.endswith(("Q1", "Q2", "Q3", "Q4")):
+            continue
+        value = float(subset["np"].median() / 10000.0)
+        if np.isfinite(value):
+            result[quarter] = value
+    return result
+
+
+def latest_actual_announcement_date(income: pd.DataFrame) -> Optional[int]:
+    if income.empty or "ann_date" not in income.columns:
+        return None
+    frame = income[pd.notna(income.get("n_income_attr_p"))].copy()
+    if frame.empty:
+        return None
+    frame["ann_date_num"] = pd.to_numeric(frame["ann_date"], errors="coerce")
+    frame = frame[pd.notna(frame["ann_date_num"])]
+    if frame.empty:
+        return None
+    return int(frame["ann_date_num"].max())
+
+
+def recent_report_frame(report: pd.DataFrame, income: pd.DataFrame) -> pd.DataFrame:
+    if report.empty or "report_date" not in report.columns:
+        return report
+    cutoff = latest_actual_announcement_date(income)
+    if cutoff is None:
+        return report
+    frame = report.copy()
+    frame["report_date_num"] = pd.to_numeric(frame["report_date"], errors="coerce")
+    recent = frame[frame["report_date_num"] >= cutoff].copy()
+    return recent if not recent.empty else report
+
+
+def quarter_key(year: int, quarter: int) -> str:
+    return f"{year}Q{quarter}"
+
+
+def historical_quarter_weights(actuals: Dict[str, float]) -> Dict[int, float]:
+    for year in (2025, 2024):
+        values = [actuals.get(quarter_key(year, quarter)) for quarter in range(1, 5)]
+        if all(value is not None for value in values):
+            total = sum(values)
+            if total > 0 and all(value > 0 for value in values):
+                weights = {quarter: values[quarter - 1] / total for quarter in range(1, 5)}
+                if min(weights.values()) >= 0.05 and max(weights.values()) <= 0.60:
+                    return weights
+    return {quarter: 0.25 for quarter in range(1, 5)}
+
+
+def modeled_quarter_profit_yi(actuals: Dict[str, float], forecasts: Dict[str, float], year: int) -> Dict[int, float]:
+    weights = historical_quarter_weights(actuals)
+    annual_forecast = forecasts.get(quarter_key(year, 4))
+    modeled: Dict[int, float] = {}
+    cumulative = 0.0
+
+    for quarter in range(1, 4):
+        key = quarter_key(year, quarter)
+        actual = actuals.get(key)
+        if actual is not None:
+            modeled[quarter] = actual
+            cumulative += actual
+            continue
+        cumulative_forecast = forecasts.get(key)
+        if cumulative_forecast is not None:
+            value = cumulative_forecast - cumulative
+            modeled[quarter] = value
+            cumulative += value
+
+    q4_actual = actuals.get(quarter_key(year, 4))
+    if q4_actual is not None:
+        modeled[4] = q4_actual
+        return modeled
+
+    if annual_forecast is not None:
+        remaining_quarters = [quarter for quarter in range(1, 5) if quarter not in modeled]
+        remaining_profit = annual_forecast - sum(modeled.values())
+        if remaining_quarters and remaining_profit > 0:
+            total_weight = sum(weights.get(quarter, 0.0) for quarter in remaining_quarters)
+            if total_weight <= 0:
+                total_weight = float(len(remaining_quarters))
+                weights = {quarter: 1.0 for quarter in remaining_quarters}
+            for quarter in remaining_quarters:
+                modeled[quarter] = remaining_profit * weights.get(quarter, 0.0) / total_weight
+
+    return modeled
+
+
+def forecast_for_actual_quarter(actuals: Dict[str, float], forecasts: Dict[str, float], year: int, quarter: int) -> Optional[float]:
+    explicit = forecasts.get(quarter_key(year, quarter))
+    if explicit is not None:
+        if quarter == 1:
+            return explicit
+        previous_actuals = sum(actuals.get(quarter_key(year, q), 0.0) for q in range(1, quarter))
+        return explicit - previous_actuals
+
+    annual_forecast = forecasts.get(quarter_key(year, 4))
+    if annual_forecast is None:
+        return None
+    weights = historical_quarter_weights(actuals)
+    return annual_forecast * weights.get(quarter, 0.25)
+
+
+def quarter_profit_cells(report: pd.DataFrame, income: pd.DataFrame) -> List[str]:
+    actuals = actual_quarter_profit_yi(income)
+    recent_report = recent_report_frame(report, income)
+    forecasts = forecast_quarter_profit_yi(recent_report)
+    cells: List[str] = []
+    for year in QUARTER_PROFIT_YEARS:
+        modeled = modeled_quarter_profit_yi(actuals, forecasts, year)
+        for quarter in range(1, 5):
+            key = quarter_key(year, quarter)
+            actual = actuals.get(key)
+            forecast = modeled.get(quarter)
+            if actual is not None:
+                actual_text = fmt_fixed_decimal(actual)
+                prior_forecast = forecast_for_actual_quarter(actuals, forecasts, year, quarter)
+                if prior_forecast is not None:
+                    cells.append(f"{actual_text}（上个Q预测{fmt_fixed_decimal(prior_forecast)}）")
+                else:
+                    cells.append(fmt_num(actual))
+            elif forecast is not None:
+                cells.append(fmt_num(forecast))
+            else:
+                cells.append("")
+    return cells
+
+
 def profit_cells(report: pd.DataFrame, income: pd.DataFrame, market_cap_yi: Optional[float]) -> tuple[Dict[int, str], Dict[int, str], Dict[int, str], str]:
+    forecast_report = recent_report_frame(report, income)
     profit_values: Dict[int, Optional[float]] = {}
     pes: Dict[int, str] = {}
     counts = []
@@ -492,10 +705,10 @@ def profit_cells(report: pd.DataFrame, income: pd.DataFrame, market_cap_yi: Opti
     for year in (2025, 2026, 2027, 2028):
         if year == 2025 and profit_values.get(year) is not None:
             counts.append(f"{year}:实际")
-        elif report.empty or "quarter" not in report.columns:
+        elif forecast_report.empty or "quarter" not in forecast_report.columns:
             profit_values.setdefault(year, None)
         else:
-            subset = report[report["quarter"].astype(str) == f"{year}Q4"].copy()
+            subset = forecast_report[forecast_report["quarter"].astype(str) == f"{year}Q4"].copy()
             subset = subset[pd.notna(subset.get("np"))]
             if not subset.empty:
                 profit_yi = float(subset["np"].median() / 10000.0)
@@ -589,6 +802,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
         forecast_profits = {2025: "", 2026: "", 2027: "", 2028: ""}
         profit_yoy = {2025: "", 2026: "", 2027: "", 2028: ""}
         forecast_pes = {2025: "", 2026: "", 2027: "", 2028: ""}
+        quarter_profit_forecasts = [""] * len(QUARTER_PROFIT_HEADERS)
         forecast_source = ""
         status = "OK"
         note = ""
@@ -601,6 +815,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
             report = fetch_report_rc(pro, code, args.refresh)
             income = fetch_income(pro, code, args.refresh)
             forecast_profits, profit_yoy, forecast_pes, forecast_source = profit_cells(report, income, market_cap_yi)
+            quarter_profit_forecasts = quarter_profit_cells(report, income)
             if not forecast_source:
                 status = "缺预测"
                 note = "未取到2025-2028 Q4券商预测"
@@ -625,10 +840,10 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
                 forecast_pes[2026],
                 forecast_pes[2027],
                 forecast_pes[2028],
-                fmt_fixed_decimal(forecast_profits[2025]),
-                fmt_fixed_decimal(forecast_profits[2026]),
-                fmt_fixed_decimal(forecast_profits[2027]),
-                fmt_fixed_decimal(forecast_profits[2028]),
+                fmt_num_value(forecast_profits[2025]),
+                fmt_num_value(forecast_profits[2026]),
+                fmt_num_value(forecast_profits[2027]),
+                fmt_num_value(forecast_profits[2028]),
                 profit_yoy[2025],
                 profit_yoy[2026],
                 profit_yoy[2027],
@@ -643,6 +858,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
                 forecast_source,
                 status,
                 note,
+                *quarter_profit_forecasts,
             ]
         )
         time.sleep(args.pause)
@@ -653,7 +869,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
 def write_sheet(token: str, spreadsheet: str, sheet_id: str, values: List[List[object]]) -> None:
     max_rows = 200
     width = len(HEADERS)
-    clear_width = max(width, 29)
+    clear_width = max(width, 42)
     padded = [HEADERS] + values
     while len(padded) < max_rows:
         padded.append([""] * clear_width)
@@ -673,9 +889,9 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
     styles = [
         {"ranges": [f"{sheet_id}!A2:{column_name(clear_width)}{max_rows}"], "style": {"backColor": "#FFFFFF"}},
         {"ranges": [f"{sheet_id}!H2:H{max_rows}"], "style": {"formatter": "0"}},
-        {"ranges": [f"{sheet_id}!M2:P{max_rows}"], "style": {"formatter": "@"}},
         {"ranges": [f"{sheet_id}!Q2:T{max_rows}"], "style": {"formatter": "0.00%"}},
         {"ranges": [f"{sheet_id}!G2:L{max_rows}"], "style": {"foreColor": "#000000"}},
+        {"ranges": [f"{sheet_id}!Q2:T{max_rows}"], "style": {"foreColor": "#000000"}},
     ]
 
     palette = [
@@ -703,6 +919,9 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
 
     green_ranges: List[str] = []
     red_ranges: List[str] = []
+    yoy_red_ranges: List[str] = []
+    yoy_blue_ranges: List[str] = []
+    yoy_high_green_ranges: List[str] = []
     for row_idx, row in enumerate(values, start=2):
         for col_idx in range(9, 13):
             value = row[col_idx - 1] if len(row) >= col_idx else ""
@@ -711,10 +930,27 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
         last_pe_value = row[11] if len(row) > 11 else ""
         if isinstance(last_pe_value, (int, float)) and last_pe_value > 50:
             red_ranges.append(f"{sheet_id}!L{row_idx}:L{row_idx}")
+        for col_idx in range(17, 21):
+            value = row[col_idx - 1] if len(row) >= col_idx else ""
+            if not isinstance(value, (int, float)):
+                continue
+            cell_range = f"{sheet_id}!{column_name(col_idx)}{row_idx}:{column_name(col_idx)}{row_idx}"
+            if value <= 0:
+                yoy_red_ranges.append(cell_range)
+            elif 0.10 <= value < 0.30:
+                yoy_blue_ranges.append(cell_range)
+            elif value >= 0.30:
+                yoy_high_green_ranges.append(cell_range)
     if green_ranges:
         styles.append({"ranges": green_ranges, "style": {"foreColor": "#00B050"}})
     if red_ranges:
         styles.append({"ranges": red_ranges, "style": {"foreColor": "#C00000"}})
+    if yoy_red_ranges:
+        styles.append({"ranges": yoy_red_ranges, "style": {"foreColor": "#C00000"}})
+    if yoy_blue_ranges:
+        styles.append({"ranges": yoy_blue_ranges, "style": {"foreColor": "#0070C0"}})
+    if yoy_high_green_ranges:
+        styles.append({"ranges": yoy_high_green_ranges, "style": {"foreColor": "#00B050"}})
 
     request_json(
         f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet}/styles_batch_update",
