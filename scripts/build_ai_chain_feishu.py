@@ -7,6 +7,7 @@ import argparse
 import getpass
 import json
 import os
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -33,6 +34,7 @@ QUARTER_PROFIT_HEADERS = [
     for year in QUARTER_PROFIT_YEARS
     for quarter in range(1, 5)
 ]
+ACTUAL_VS_FORECAST_PATTERN = re.compile(r"([-+]?\d+(?:\.\d+)?)\s*（上个Q预测\s*([-+]?\d+(?:\.\d+)?)）")
 
 
 HEADERS = [
@@ -922,6 +924,10 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
     yoy_red_ranges: List[str] = []
     yoy_blue_ranges: List[str] = []
     yoy_high_green_ranges: List[str] = []
+    actual_match_blue_ranges: List[str] = []
+    actual_beat_green_ranges: List[str] = []
+    actual_miss_red_ranges: List[str] = []
+    first_quarter_profit_col = len(HEADERS) - len(QUARTER_PROFIT_HEADERS) + 1
     for row_idx, row in enumerate(values, start=2):
         for col_idx in range(9, 13):
             value = row[col_idx - 1] if len(row) >= col_idx else ""
@@ -941,6 +947,31 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
                 yoy_blue_ranges.append(cell_range)
             elif value >= 0.30:
                 yoy_high_green_ranges.append(cell_range)
+        actual_forecast_value = row[first_quarter_profit_col - 1] if len(row) >= first_quarter_profit_col else ""
+        if isinstance(actual_forecast_value, str):
+            match = ACTUAL_VS_FORECAST_PATTERN.search(actual_forecast_value)
+            if match:
+                actual = float(match.group(1))
+                forecast = float(match.group(2))
+                cell_range = (
+                    f"{sheet_id}!{column_name(first_quarter_profit_col)}{row_idx}:"
+                    f"{column_name(first_quarter_profit_col)}{row_idx}"
+                )
+                if forecast == 0:
+                    if abs(actual) <= 0.05:
+                        actual_match_blue_ranges.append(cell_range)
+                    elif actual > 0:
+                        actual_beat_green_ranges.append(cell_range)
+                    else:
+                        actual_miss_red_ranges.append(cell_range)
+                else:
+                    delta_ratio = (actual - forecast) / abs(forecast)
+                    if abs(delta_ratio) <= 0.10:
+                        actual_match_blue_ranges.append(cell_range)
+                    elif delta_ratio > 0.10:
+                        actual_beat_green_ranges.append(cell_range)
+                    else:
+                        actual_miss_red_ranges.append(cell_range)
     if green_ranges:
         styles.append({"ranges": green_ranges, "style": {"foreColor": "#00B050"}})
     if red_ranges:
@@ -951,6 +982,12 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
         styles.append({"ranges": yoy_blue_ranges, "style": {"foreColor": "#0070C0"}})
     if yoy_high_green_ranges:
         styles.append({"ranges": yoy_high_green_ranges, "style": {"foreColor": "#00B050"}})
+    if actual_match_blue_ranges:
+        styles.append({"ranges": actual_match_blue_ranges, "style": {"backColor": "#D9EAF7"}})
+    if actual_beat_green_ranges:
+        styles.append({"ranges": actual_beat_green_ranges, "style": {"backColor": "#D9EAD3"}})
+    if actual_miss_red_ranges:
+        styles.append({"ranges": actual_miss_red_ranges, "style": {"backColor": "#F4CCCC"}})
 
     request_json(
         f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet}/styles_batch_update",

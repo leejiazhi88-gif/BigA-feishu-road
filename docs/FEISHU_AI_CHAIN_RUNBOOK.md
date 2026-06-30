@@ -118,9 +118,9 @@ If Tushare HK endpoints hit rate limits, A-share data can still refresh normally
   - `>= 30%`: green font
   - `0% to 10%`: default black font
 - AE, currently `2026Q1净利润(亿元)`, compares actual profit with previous-quarter forecast:
-  - Actual roughly equal to forecast: green background
-  - Actual above forecast: yellow background
-  - Actual below forecast: red background
+  - Actual within +/-10% of forecast: blue background
+  - Actual more than 10% above forecast: green background
+  - Actual more than 10% below forecast: red background
 - H:G style notes from prior edits:
   - G/H should not carry extra manual color.
   - Market cap should have no decimals.
