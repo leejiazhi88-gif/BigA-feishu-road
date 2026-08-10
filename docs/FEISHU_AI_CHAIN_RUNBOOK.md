@@ -5,8 +5,10 @@ This note records the working context for continuing the AI industry-chain Feish
 ## Links
 
 - Feishu wiki / spreadsheet entry: https://my.feishu.cn/wiki/UxDvwwezLihFS1kVmhHcqwypnQc
+- New Feishu wiki / spreadsheet entry: https://my.feishu.cn/wiki/DlRmwrJOgiWIVhkWZtsc6h0Bnnd
 - GitHub repository: https://github.com/leejiazhi88-gif/BigA-feishu-road
 - Current spreadsheet token: `ElgysBB1dhMXPCtZKzncF4Denud`
+- New spreadsheet token: `UJJesUWvehxTbNtNpV2cHuDcnIc`
 - Recent working sheets:
   - `2026-06-05`
   - `2026-06-09`
@@ -125,6 +127,8 @@ If Tushare HK endpoints hit rate limits, A-share data can still refresh normally
   - G/H should not carry extra manual color.
   - Market cap should have no decimals.
   - M:P should keep one decimal.
+- Current table includes `股息率%`, sourced from Tushare `daily_basic.dv_ttm`.
+- The watchlist now includes additional A-share `白马成长股`, `红利低波股`, and `保险白马股` segments.
 
 ## Main Script
 

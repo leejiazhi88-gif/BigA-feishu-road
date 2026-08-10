@@ -47,6 +47,7 @@ HEADERS = [
     "供应链确定性",
     "市值(亿元)",
     "PE(TTM)",
+    "股息率%",
     "2026 PE(预测)",
     "2027 PE(预测)",
     "2028 PE(预测)",
@@ -85,6 +86,9 @@ SEGMENT_ORDER = {
     "AI源头资源": 91,
     "电力类": 92,
     "非Rubin直接链/AI应用": 99,
+    "白马成长股": 120,
+    "红利低波股": 121,
+    "保险白马股": 122,
 }
 
 BASE_SEGMENT_TO_RUBIN_CHAIN = {
@@ -100,6 +104,9 @@ BASE_SEGMENT_TO_RUBIN_CHAIN = {
     "电力类": "电力类",
     "模型/应用": "非Rubin直接链/AI应用",
     "端侧AI/机器人": "非Rubin直接链/AI应用",
+    "白马成长股": "白马成长股",
+    "红利低波股": "红利低波股",
+    "保险白马股": "保险白马股",
 }
 
 
@@ -196,6 +203,36 @@ AI_STOCKS: List[Dict[str, str]] = [
     {"market": "A股", "code": "688207.SH", "segment": "端侧AI/机器人", "theme": "机器视觉", "role": "AI视觉算法与应用"},
     {"market": "A股", "code": "002236.SZ", "segment": "端侧AI/机器人", "theme": "机器视觉/安防AI", "role": "视觉AI硬件与方案"},
     {"market": "A股", "code": "002415.SZ", "segment": "端侧AI/机器人", "theme": "视觉AI", "role": "视觉AI与物联感知"},
+    # Broader A-share white-chip, dividend low-volatility, and insurance watchlist.
+    {"market": "A股", "code": "600030.SH", "segment": "白马成长股", "theme": "券商龙头", "role": "头部综合券商，财富管理、投行与资管业务"},
+    {"market": "A股", "code": "601211.SH", "segment": "白马成长股", "theme": "券商龙头", "role": "综合券商龙头，资本市场活跃度受益"},
+    {"market": "A股", "code": "601688.SH", "segment": "白马成长股", "theme": "券商龙头", "role": "头部券商，机构业务和财富管理能力突出"},
+    {"market": "A股", "code": "000776.SZ", "segment": "白马成长股", "theme": "券商龙头", "role": "全国性综合券商"},
+    {"market": "A股", "code": "601881.SH", "segment": "白马成长股", "theme": "券商龙头", "role": "大型综合券商"},
+    {"market": "A股", "code": "600999.SH", "segment": "白马成长股", "theme": "券商龙头", "role": "招商系综合券商"},
+    {"market": "A股", "code": "600519.SH", "segment": "白马成长股", "theme": "高端白酒", "role": "高端白酒龙头，消费核心资产"},
+    {"market": "A股", "code": "000858.SZ", "segment": "白马成长股", "theme": "高端白酒", "role": "浓香白酒龙头"},
+    {"market": "A股", "code": "000568.SZ", "segment": "白马成长股", "theme": "高端白酒", "role": "高端白酒核心品牌"},
+    {"market": "A股", "code": "600809.SH", "segment": "白马成长股", "theme": "次高端白酒", "role": "清香白酒龙头"},
+    {"market": "A股", "code": "002304.SZ", "segment": "白马成长股", "theme": "白酒", "role": "全国化白酒品牌"},
+    {"market": "A股", "code": "000596.SZ", "segment": "白马成长股", "theme": "白酒", "role": "区域白酒龙头"},
+    {"market": "A股", "code": "000333.SZ", "segment": "白马成长股", "theme": "家电制造", "role": "全球家电和工业技术龙头"},
+    {"market": "A股", "code": "000651.SZ", "segment": "白马成长股", "theme": "家电制造", "role": "空调与家电龙头"},
+    {"market": "A股", "code": "600690.SH", "segment": "白马成长股", "theme": "家电制造", "role": "全球白电与智慧家庭龙头"},
+    {"market": "A股", "code": "002050.SZ", "segment": "白马成长股", "theme": "家电零部件", "role": "热管理和制冷零部件龙头"},
+    {"market": "A股", "code": "000921.SZ", "segment": "白马成长股", "theme": "家电制造", "role": "白电与黑电制造"},
+    {"market": "A股", "code": "002508.SZ", "segment": "白马成长股", "theme": "厨电", "role": "厨电龙头"},
+    {"market": "A股", "code": "600036.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "零售银行龙头，高分红金融资产"},
+    {"market": "A股", "code": "601398.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
+    {"market": "A股", "code": "601288.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
+    {"market": "A股", "code": "601939.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
+    {"market": "A股", "code": "601328.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
+    {"market": "A股", "code": "601088.SH", "segment": "红利低波股", "theme": "煤炭/红利低波", "role": "煤电一体化能源龙头，高分红资产"},
+    {"market": "A股", "code": "601318.SH", "segment": "保险白马股", "theme": "保险/综合金融", "role": "综合金融与保险龙头"},
+    {"market": "A股", "code": "601628.SH", "segment": "保险白马股", "theme": "保险/寿险", "role": "寿险龙头"},
+    {"market": "A股", "code": "601601.SH", "segment": "保险白马股", "theme": "保险/寿险+财险", "role": "综合保险龙头"},
+    {"market": "A股", "code": "601336.SH", "segment": "保险白马股", "theme": "保险/寿险", "role": "寿险公司"},
+    {"market": "A股", "code": "601319.SH", "segment": "保险白马股", "theme": "保险/财险", "role": "财险龙头"},
     # Hong Kong.
     {"market": "港股", "code": "00700.HK", "segment": "模型/应用", "theme": "云/大模型/应用", "role": "腾讯云、混元大模型、AI应用生态"},
     {"market": "港股", "code": "09988.HK", "segment": "模型/应用", "theme": "云/大模型", "role": "阿里云、通义大模型与电商AI"},
@@ -389,7 +426,7 @@ def fetch_daily_basic(pro, code: str, start_date: str, end_date: str, refresh: b
     if frame.empty:
         return frame
     frame["trade_date"] = pd.to_datetime(frame["trade_date"], format="%Y%m%d")
-    for column in ("total_mv", "pe_ttm"):
+    for column in ("total_mv", "pe_ttm", "dv_ttm"):
         frame[column] = pd.to_numeric(frame.get(column), errors="coerce")
     return frame.sort_values("trade_date").drop_duplicates("trade_date", keep="last")
 
@@ -801,6 +838,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
 
         market_cap_yi = None
         pe_ttm = None
+        dividend_yield = None
         forecast_profits = {2025: "", 2026: "", 2027: "", 2028: ""}
         profit_yoy = {2025: "", 2026: "", 2027: "", 2028: ""}
         forecast_pes = {2025: "", 2026: "", 2027: "", 2028: ""}
@@ -814,6 +852,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
                 latest_basic = basic.iloc[-1]
                 market_cap_yi = float(latest_basic["total_mv"] / 10000) if pd.notna(latest_basic.get("total_mv")) else None
                 pe_ttm = float(latest_basic["pe_ttm"]) if pd.notna(latest_basic.get("pe_ttm")) else None
+                dividend_yield = float(latest_basic["dv_ttm"]) if pd.notna(latest_basic.get("dv_ttm")) else None
             report = fetch_report_rc(pro, code, args.refresh)
             income = fetch_income(pro, code, args.refresh)
             forecast_profits, profit_yoy, forecast_pes, forecast_source = profit_cells(report, income, market_cap_yi)
@@ -839,6 +878,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
                 item.get("certainty", certainty_for_item(item)),
                 fmt_int(market_cap_yi),
                 fmt_num(pe_ttm),
+                fmt_num(dividend_yield),
                 forecast_pes[2026],
                 forecast_pes[2027],
                 forecast_pes[2028],
@@ -888,12 +928,29 @@ def write_sheet(token: str, spreadsheet: str, sheet_id: str, values: List[List[o
 
 
 def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List[List[object]], max_rows: int, clear_width: int) -> None:
+    def header_col(title: str) -> int:
+        return HEADERS.index(title) + 1
+
+    market_cap_col = header_col("市值(亿元)")
+    dividend_col = header_col("股息率%")
+    pe_cols = [
+        header_col("PE(TTM)"),
+        header_col("2026 PE(预测)"),
+        header_col("2027 PE(预测)"),
+        header_col("2028 PE(预测)"),
+    ]
+    yoy_cols = [
+        header_col("2025净利润同比%(实际/预测)"),
+        header_col("2026净利润同比%(预测)"),
+        header_col("2027净利润同比%(预测)"),
+        header_col("2028净利润同比%(预测)"),
+    ]
     styles = [
         {"ranges": [f"{sheet_id}!A2:{column_name(clear_width)}{max_rows}"], "style": {"backColor": "#FFFFFF"}},
-        {"ranges": [f"{sheet_id}!H2:H{max_rows}"], "style": {"formatter": "0"}},
-        {"ranges": [f"{sheet_id}!Q2:T{max_rows}"], "style": {"formatter": "0.00%"}},
-        {"ranges": [f"{sheet_id}!G2:L{max_rows}"], "style": {"foreColor": "#000000"}},
-        {"ranges": [f"{sheet_id}!Q2:T{max_rows}"], "style": {"foreColor": "#000000"}},
+        {"ranges": [f"{sheet_id}!{column_name(market_cap_col)}2:{column_name(market_cap_col)}{max_rows}"], "style": {"formatter": "0"}},
+        {"ranges": [f"{sheet_id}!{column_name(yoy_cols[0])}2:{column_name(yoy_cols[-1])}{max_rows}"], "style": {"formatter": "0.00%"}},
+        {"ranges": [f"{sheet_id}!G2:{column_name(header_col('2028 PE(预测)'))}{max_rows}"], "style": {"foreColor": "#000000"}},
+        {"ranges": [f"{sheet_id}!{column_name(yoy_cols[0])}2:{column_name(yoy_cols[-1])}{max_rows}"], "style": {"foreColor": "#000000"}},
     ]
 
     palette = [
@@ -929,14 +986,15 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
     actual_miss_red_ranges: List[str] = []
     first_quarter_profit_col = len(HEADERS) - len(QUARTER_PROFIT_HEADERS) + 1
     for row_idx, row in enumerate(values, start=2):
-        for col_idx in range(9, 13):
+        for col_idx in pe_cols:
             value = row[col_idx - 1] if len(row) >= col_idx else ""
             if isinstance(value, (int, float)) and value < 30:
                 green_ranges.append(f"{sheet_id}!{column_name(col_idx)}{row_idx}:{column_name(col_idx)}{row_idx}")
-        last_pe_value = row[11] if len(row) > 11 else ""
+        last_pe_col = header_col("2028 PE(预测)")
+        last_pe_value = row[last_pe_col - 1] if len(row) >= last_pe_col else ""
         if isinstance(last_pe_value, (int, float)) and last_pe_value > 50:
-            red_ranges.append(f"{sheet_id}!L{row_idx}:L{row_idx}")
-        for col_idx in range(17, 21):
+            red_ranges.append(f"{sheet_id}!{column_name(last_pe_col)}{row_idx}:{column_name(last_pe_col)}{row_idx}")
+        for col_idx in yoy_cols:
             value = row[col_idx - 1] if len(row) >= col_idx else ""
             if not isinstance(value, (int, float)):
                 continue
