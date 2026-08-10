@@ -234,25 +234,8 @@ AI_STOCKS: List[Dict[str, str]] = [
     {"market": "A股", "code": "601601.SH", "segment": "保险白马股", "theme": "保险/寿险+财险", "role": "综合保险龙头"},
     {"market": "A股", "code": "601336.SH", "segment": "保险白马股", "theme": "保险/寿险", "role": "寿险公司"},
     {"market": "A股", "code": "601319.SH", "segment": "保险白马股", "theme": "保险/财险", "role": "财险龙头"},
-    # Hong Kong.
-    {"market": "港股", "code": "00700.HK", "segment": "模型/应用", "theme": "云/大模型/应用", "role": "腾讯云、混元大模型、AI应用生态"},
-    {"market": "港股", "code": "09988.HK", "segment": "模型/应用", "theme": "云/大模型", "role": "阿里云、通义大模型与电商AI"},
-    {"market": "港股", "code": "09888.HK", "segment": "模型/应用", "theme": "搜索/大模型", "role": "文心大模型与搜索AI"},
-    {"market": "港股", "code": "01024.HK", "segment": "模型/应用", "theme": "AI内容/推荐", "role": "短视频推荐与AIGC应用"},
-    {"market": "港股", "code": "01810.HK", "segment": "端侧AI/机器人", "theme": "AI终端/汽车", "role": "AI手机、IoT与智能汽车"},
-    {"market": "港股", "code": "03690.HK", "segment": "模型/应用", "theme": "本地生活AI", "role": "配送调度和商家AI工具"},
-    {"market": "港股", "code": "09618.HK", "segment": "模型/应用", "theme": "零售/物流AI", "role": "供应链、云和零售AI"},
-    {"market": "港股", "code": "03888.HK", "segment": "模型/应用", "theme": "办公/游戏AI", "role": "WPS、游戏和办公AI"},
-    {"market": "港股", "code": "03896.HK", "segment": "算力基础设施", "theme": "云计算", "role": "金山云算力和云服务"},
-    {"market": "港股", "code": "09698.HK", "segment": "算力基础设施", "theme": "IDC", "role": "数据中心基础设施"},
-    {"market": "港股", "code": "00941.HK", "segment": "算力基础设施", "theme": "运营商云", "role": "算力网络和云资源"},
     {"market": "A股", "code": "688981.SH", "segment": "算力芯片", "theme": "晶圆制造", "role": "先进/成熟制程晶圆制造"},
-    {"market": "港股", "code": "01347.HK", "segment": "算力芯片", "theme": "晶圆制造", "role": "特色工艺和功率半导体制造"},
     {"market": "A股", "code": "688385.SH", "segment": "算力芯片", "theme": "芯片设计", "role": "安全芯片、FPGA与存储控制"},
-    {"market": "港股", "code": "02382.HK", "segment": "端侧AI/机器人", "theme": "光学", "role": "AI终端摄像与光学模组"},
-    {"market": "港股", "code": "02018.HK", "segment": "端侧AI/机器人", "theme": "声学/触觉", "role": "AI终端声学和传感部件"},
-    {"market": "港股", "code": "06682.HK", "segment": "模型/应用", "theme": "企业AI平台", "role": "企业级AI平台与行业模型"},
-    {"market": "港股", "code": "09880.HK", "segment": "端侧AI/机器人", "theme": "人形机器人", "role": "人形机器人与服务机器人"},
 ]
 
 
@@ -262,6 +245,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--spreadsheet-token", default="")
     parser.add_argument("--sheet-title", default="")
     parser.add_argument("--feishu-env", default=DEFAULT_FEISHU_ENV)
+    parser.add_argument("--source-spreadsheet-token", default="")
+    parser.add_argument("--source-sheet-id", default="")
+    parser.add_argument("--drop-hk", action="store_true")
     parser.add_argument("--start-date", default="20240501")
     parser.add_argument("--end-date", default=date.today().strftime("%Y%m%d"))
     parser.add_argument("--refresh", action="store_true")
@@ -297,6 +283,20 @@ def request_json(url: str, token: Optional[str] = None, method: str = "GET", bod
     if payload.get("code") not in (0, None):
         raise RuntimeError(f"API call failed: {payload}")
     return payload
+
+
+def cell_text(value: object) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, list):
+        parts = []
+        for part in value:
+            if isinstance(part, dict):
+                parts.append(str(part.get("text", "")))
+            else:
+                parts.append(str(part))
+        return "".join(parts).strip()
+    return str(value).strip()
 
 
 def get_feishu_token(env_path: str) -> str:
@@ -480,6 +480,68 @@ def latest_name_maps(pro) -> tuple[Dict[str, str], Dict[str, str]]:
     a_names = dict(zip(stock_basic.get("ts_code", []), stock_basic.get("name", [])))
     hk_names = dict(zip(hk_basic.get("ts_code", []), hk_basic.get("name", [])))
     return a_names, hk_names
+
+
+def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: str, drop_hk: bool) -> List[Dict[str, str]]:
+    response = request_json(
+        f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet}/values/{sheet_id}!A1:AZ500",
+        token=token,
+    )
+    values = response.get("data", {}).get("valueRange", {}).get("values", [])
+    if not values:
+        return []
+    headers = [cell_text(value) for value in values[0]]
+    header_index = {header: index for index, header in enumerate(headers) if header}
+
+    def row_value(row: List[object], title: str) -> str:
+        index = header_index.get(title)
+        if index is None or len(row) <= index:
+            return ""
+        return cell_text(row[index])
+
+    a_names, hk_names = latest_name_maps(pro)
+    a_code_by_name = {name: code for code, name in a_names.items() if name}
+    hk_code_by_name = {name: code for code, name in hk_names.items() if name}
+    source_items: List[Dict[str, str]] = []
+    seen_codes = set()
+    seen_names = set()
+    for row in values[1:]:
+        name = row_value(row, "名称")
+        if not name:
+            continue
+        market = row_value(row, "市场")
+        if drop_hk and market == "港股":
+            continue
+        code = row_value(row, "代码")
+        if not code:
+            code = a_code_by_name.get(name, "") or hk_code_by_name.get(name, "")
+        if not market:
+            if code.endswith((".SH", ".SZ", ".BJ")):
+                market = "A股"
+            elif code.endswith(".HK"):
+                market = "港股"
+        if drop_hk and (market == "港股" or code.endswith(".HK")):
+            continue
+        dedupe_key = code or name
+        if dedupe_key in seen_codes or name in seen_names:
+            continue
+        seen_codes.add(dedupe_key)
+        seen_names.add(name)
+        segment = row_value(row, "产业链环节")
+        theme = row_value(row, "细分方向") or segment
+        role = row_value(row, "公司产品简介") or theme
+        source_items.append(
+            {
+                "name": name,
+                "market": market or "A股",
+                "code": code,
+                "segment": segment,
+                "theme": theme,
+                "role": role,
+                "certainty": row_value(row, "供应链确定性"),
+            }
+        )
+    return source_items
 
 
 def pct_return(history: pd.DataFrame, days: int) -> Optional[float]:
@@ -822,12 +884,13 @@ def row_market_cap(row: List[object]) -> float:
         return 0.0
 
 
-def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
+def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str]]] = None) -> List[List[object]]:
     a_names, hk_names = latest_name_maps(pro)
     rows = []
     seen = set()
+    stock_items = items if items is not None else AI_STOCKS
     ordered_items = sorted(
-        enumerate(AI_STOCKS),
+        enumerate(stock_items),
         key=lambda pair: (SEGMENT_ORDER.get(pair[1]["segment"], 99), pair[0]),
     )
     for _, item in ordered_items:
@@ -873,7 +936,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
             note = "Tushare当前仅填港股行情涨幅；市值、PE、预测待接入港股估值/一致预期源"
 
         name_map = hk_names if market == "港股" else a_names
-        name = name_map.get(code, "")
+        name = item.get("name") or name_map.get(code, "")
         rows.append(
             [
                 name,
@@ -1094,10 +1157,20 @@ def main() -> None:
     args = parse_args()
     ensure_dirs()
     pro = tushare_client()
-    rows = build_rows(pro, args)
+    feishu_token = get_feishu_token(args.feishu_env)
+    source_items = None
+    if args.source_spreadsheet_token and args.source_sheet_id:
+        source_items = load_items_from_source_sheet(
+            feishu_token,
+            pro,
+            args.source_spreadsheet_token,
+            args.source_sheet_id,
+            args.drop_hk,
+        )
+        print(f"Loaded {len(source_items)} source items from Feishu sheet {args.source_sheet_id}")
+    rows = build_rows(pro, args, source_items)
     export_path = EXPORT_DIR / "ai_chain_stocks.csv"
     pd.DataFrame(rows, columns=HEADERS).to_csv(export_path, index=False)
-    feishu_token = get_feishu_token(args.feishu_env)
     if args.spreadsheet_token:
         spreadsheet = args.spreadsheet_token
     else:

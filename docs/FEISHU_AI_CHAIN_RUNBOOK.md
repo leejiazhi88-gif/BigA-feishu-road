@@ -104,6 +104,22 @@ export TUSHARE_TOKEN="your_tushare_token"
   --refresh
 ```
 
+Refresh the newer A-share-only watchlist from the manually curated `2026-07-30` source sheet:
+
+```bash
+export TUSHARE_TOKEN="your_tushare_token"
+.venv/bin/python scripts/build_ai_chain_feishu.py \
+  --wiki-url "https://my.feishu.cn/wiki/DlRmwrJOgiWIVhkWZtsc6h0Bnnd" \
+  --sheet-title "$(date +%F)" \
+  --source-spreadsheet-token "ElgysBB1dhMXPCtZKzncF4Denud" \
+  --source-sheet-id "3AJm92" \
+  --drop-hk \
+  --feishu-env .env \
+  --refresh
+```
+
+For this newer watchlist, the source of truth for stock membership is the old `2026-07-30` sheet (`3AJm92`): copy exactly that stock list, then remove all HK stocks. Do not add extra white-chip, dividend, insurance, or HK rows unless the user explicitly edits the source list.
+
 If Tushare HK endpoints hit rate limits, A-share data can still refresh normally. HK rows may have partial blanks until the HK quota window resets.
 
 ## Current Table Conventions
@@ -128,7 +144,8 @@ If Tushare HK endpoints hit rate limits, A-share data can still refresh normally
   - Market cap should have no decimals.
   - M:P should keep one decimal.
 - Current table includes `股息率%`, sourced from Tushare `daily_basic.dv_ttm`.
-- The watchlist now includes additional A-share `白马成长股`, `红利低波股`, and `保险白马股` segments.
+- `股息率%` must be the last column and should be written as a fraction for spreadsheet percentage formatting; for example Tushare `dv_ttm=5.2` should be written as `0.052`.
+- The newer watchlist excludes all HK stocks.
 
 ## Main Script
 
