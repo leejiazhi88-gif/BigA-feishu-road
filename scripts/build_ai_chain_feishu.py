@@ -47,7 +47,6 @@ HEADERS = [
     "供应链确定性",
     "市值(亿元)",
     "PE(TTM)",
-    "股息率%",
     "2026 PE(预测)",
     "2027 PE(预测)",
     "2028 PE(预测)",
@@ -69,7 +68,9 @@ HEADERS = [
     "预测来源",
     "数据状态",
     "备注",
-] + QUARTER_PROFIT_HEADERS
+] + QUARTER_PROFIT_HEADERS + [
+    "股息率%",
+]
 
 SEGMENT_ORDER = {
     "GPU/CPU/NVLink/核心芯片": 1,
@@ -522,6 +523,12 @@ def fmt_num_value(value: object, digits: int = 1):
     return round(number, digits)
 
 
+def fmt_pct_fraction(value: Optional[float], digits: int = 4):
+    if value is None or pd.isna(value) or not np.isfinite(value):
+        return ""
+    return round(float(value) / 100.0, digits)
+
+
 def fmt_int(value: Optional[float]):
     if value is None or pd.isna(value) or not np.isfinite(value):
         return ""
@@ -878,7 +885,6 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
                 item.get("certainty", certainty_for_item(item)),
                 fmt_int(market_cap_yi),
                 fmt_num(pe_ttm),
-                fmt_num(dividend_yield),
                 forecast_pes[2026],
                 forecast_pes[2027],
                 forecast_pes[2028],
@@ -901,6 +907,7 @@ def build_rows(pro, args: argparse.Namespace) -> List[List[object]]:
                 status,
                 note,
                 *quarter_profit_forecasts,
+                fmt_pct_fraction(dividend_yield),
             ]
         )
         time.sleep(args.pause)
@@ -948,6 +955,7 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
     styles = [
         {"ranges": [f"{sheet_id}!A2:{column_name(clear_width)}{max_rows}"], "style": {"backColor": "#FFFFFF"}},
         {"ranges": [f"{sheet_id}!{column_name(market_cap_col)}2:{column_name(market_cap_col)}{max_rows}"], "style": {"formatter": "0"}},
+        {"ranges": [f"{sheet_id}!{column_name(dividend_col)}2:{column_name(dividend_col)}{max_rows}"], "style": {"formatter": "0.00%"}},
         {"ranges": [f"{sheet_id}!{column_name(yoy_cols[0])}2:{column_name(yoy_cols[-1])}{max_rows}"], "style": {"formatter": "0.00%"}},
         {"ranges": [f"{sheet_id}!G2:{column_name(header_col('2028 PE(预测)'))}{max_rows}"], "style": {"foreColor": "#000000"}},
         {"ranges": [f"{sheet_id}!{column_name(yoy_cols[0])}2:{column_name(yoy_cols[-1])}{max_rows}"], "style": {"foreColor": "#000000"}},
@@ -984,7 +992,7 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
     actual_match_blue_ranges: List[str] = []
     actual_beat_green_ranges: List[str] = []
     actual_miss_red_ranges: List[str] = []
-    first_quarter_profit_col = len(HEADERS) - len(QUARTER_PROFIT_HEADERS) + 1
+    first_quarter_profit_col = header_col(QUARTER_PROFIT_HEADERS[0])
     for row_idx, row in enumerate(values, start=2):
         for col_idx in pe_cols:
             value = row[col_idx - 1] if len(row) >= col_idx else ""
