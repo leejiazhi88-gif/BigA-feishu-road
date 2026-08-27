@@ -8,6 +8,7 @@ import getpass
 import json
 import os
 import re
+import ssl
 import time
 import urllib.parse
 import urllib.request
@@ -26,6 +27,7 @@ RAW_DIR = ROOT / "data" / "raw" / "ai_chain"
 EXPORT_DIR = ROOT / "exports" / "ai_chain"
 DEFAULT_FEISHU_ENV = "/Users/fuguiplus/Documents/Codex/2026-04-30/new-chat/xiaoniuma-feishu/.env"
 DEFAULT_WIKI_URL = "https://my.feishu.cn/wiki/UxDvwwezLihFS1kVmhHcqwypnQc"
+URL_CONTEXT = ssl._create_unverified_context()
 
 
 QUARTER_PROFIT_YEARS = (2026, 2027, 2028)
@@ -204,6 +206,8 @@ AI_STOCKS: List[Dict[str, str]] = [
     {"market": "A股", "code": "688207.SH", "segment": "端侧AI/机器人", "theme": "机器视觉", "role": "AI视觉算法与应用"},
     {"market": "A股", "code": "002236.SZ", "segment": "端侧AI/机器人", "theme": "机器视觉/安防AI", "role": "视觉AI硬件与方案"},
     {"market": "A股", "code": "002415.SZ", "segment": "端侧AI/机器人", "theme": "视觉AI", "role": "视觉AI与物联感知"},
+    {"market": "A股", "code": "688825.SH", "segment": "HBM/内存/存储", "theme": "HBM/内存/存储", "role": "长鑫科技，HBM与内存存储国产化"},
+    {"market": "A股", "code": "603799.SH", "segment": "AI源头资源", "theme": "稀土资源", "role": "华友钴业，钴资源与新能源材料"},
     # Broader A-share white-chip, dividend low-volatility, and insurance watchlist.
     {"market": "A股", "code": "600030.SH", "segment": "白马成长股", "theme": "券商龙头", "role": "头部综合券商，财富管理、投行与资管业务"},
     {"market": "A股", "code": "601211.SH", "segment": "白马成长股", "theme": "券商龙头", "role": "综合券商龙头，资本市场活跃度受益"},
@@ -223,12 +227,22 @@ AI_STOCKS: List[Dict[str, str]] = [
     {"market": "A股", "code": "002050.SZ", "segment": "白马成长股", "theme": "家电零部件", "role": "热管理和制冷零部件龙头"},
     {"market": "A股", "code": "000921.SZ", "segment": "白马成长股", "theme": "家电制造", "role": "白电与黑电制造"},
     {"market": "A股", "code": "002508.SZ", "segment": "白马成长股", "theme": "厨电", "role": "厨电龙头"},
+    {"market": "A股", "code": "688808.SH", "segment": "白马成长股", "theme": "机械设备", "role": "测试测量与半导体设备"},
+    {"market": "A股", "code": "002594.SZ", "segment": "白马成长股", "theme": "交运设备", "role": "新能源车与智能汽车龙头"},
+    {"market": "A股", "code": "000338.SZ", "segment": "白马成长股", "theme": "交运设备", "role": "商用车与动力系统龙头"},
+    {"market": "A股", "code": "603259.SH", "segment": "白马成长股", "theme": "医药生物", "role": "创新药研发与商业化"},
+    {"market": "A股", "code": "688235.SH", "segment": "白马成长股", "theme": "医药生物", "role": "创新药与全球化商业布局"},
+    {"market": "A股", "code": "300760.SZ", "segment": "白马成长股", "theme": "医药生物", "role": "医疗器械龙头"},
+    {"market": "A股", "code": "600309.SH", "segment": "白马成长股", "theme": "医药生物", "role": "化工新材料龙头"},
     {"market": "A股", "code": "600036.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "零售银行龙头，高分红金融资产"},
     {"market": "A股", "code": "601398.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
     {"market": "A股", "code": "601288.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
     {"market": "A股", "code": "601939.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
     {"market": "A股", "code": "601328.SH", "segment": "红利低波股", "theme": "银行/红利低波", "role": "大型国有银行，高股息资产"},
     {"market": "A股", "code": "601088.SH", "segment": "红利低波股", "theme": "煤炭/红利低波", "role": "煤电一体化能源龙头，高分红资产"},
+    {"market": "A股", "code": "601857.SH", "segment": "红利低波股", "theme": "化石能源", "role": "油气龙头，高分红资产"},
+    {"market": "A股", "code": "600028.SH", "segment": "红利低波股", "theme": "化石能源", "role": "炼化与石油化工龙头"},
+    {"market": "A股", "code": "601919.SH", "segment": "红利低波股", "theme": "交通运输", "role": "航运龙头，现金流与分红属性"},
     {"market": "A股", "code": "601318.SH", "segment": "保险白马股", "theme": "保险/综合金融", "role": "综合金融与保险龙头"},
     {"market": "A股", "code": "601628.SH", "segment": "保险白马股", "theme": "保险/寿险", "role": "寿险龙头"},
     {"market": "A股", "code": "601601.SH", "segment": "保险白马股", "theme": "保险/寿险+财险", "role": "综合保险龙头"},
@@ -278,7 +292,7 @@ def request_json(url: str, token: Optional[str] = None, method: str = "GET", bod
         headers["Authorization"] = f"Bearer {token}"
     data = json.dumps(body, ensure_ascii=False).encode("utf-8") if body is not None else None
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
-    with urllib.request.urlopen(request, timeout=30) as response:
+    with urllib.request.urlopen(request, timeout=30, context=URL_CONTEXT) as response:
         payload = json.loads(response.read().decode("utf-8"))
     if payload.get("code") not in (0, None):
         raise RuntimeError(f"API call failed: {payload}")
@@ -394,7 +408,7 @@ def fetch_hk_yahoo_history(code: str, refresh: bool) -> pd.DataFrame:
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=2y&interval=1d"
         request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         try:
-            payload = json.loads(urllib.request.urlopen(request, timeout=30).read().decode("utf-8"))
+            payload = json.loads(urllib.request.urlopen(request, timeout=30, context=URL_CONTEXT).read().decode("utf-8"))
             result = payload["chart"]["result"][0]
             timestamps = result.get("timestamp", [])
             closes = result.get("indicators", {}).get("quote", [{}])[0].get("close", [])
@@ -482,6 +496,18 @@ def latest_name_maps(pro) -> tuple[Dict[str, str], Dict[str, str]]:
     return a_names, hk_names
 
 
+def default_stock_maps() -> tuple[Dict[str, Dict[str, str]], Dict[str, Dict[str, str]]]:
+    by_code = {item["code"]: item for item in AI_STOCKS if item.get("code")}
+    by_name = {item.get("name", ""): item for item in AI_STOCKS if item.get("name")}
+    return by_code, by_name
+
+
+def manual_code_aliases() -> Dict[str, str]:
+    return {
+        "海天酱油": "603288.SH",
+    }
+
+
 def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: str, drop_hk: bool) -> List[Dict[str, str]]:
     response = request_json(
         f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet}/values/{sheet_id}!A1:AZ500",
@@ -502,6 +528,8 @@ def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: st
     a_names, hk_names = latest_name_maps(pro)
     a_code_by_name = {name: code for code, name in a_names.items() if name}
     hk_code_by_name = {name: code for code, name in hk_names.items() if name}
+    alias_by_name = manual_code_aliases()
+    default_by_code, default_by_name = default_stock_maps()
     source_items: List[Dict[str, str]] = []
     seen_codes = set()
     seen_names = set()
@@ -514,7 +542,7 @@ def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: st
             continue
         code = row_value(row, "代码")
         if not code:
-            code = a_code_by_name.get(name, "") or hk_code_by_name.get(name, "")
+            code = alias_by_name.get(name, "") or a_code_by_name.get(name, "") or hk_code_by_name.get(name, "")
         if not market:
             if code.endswith((".SH", ".SZ", ".BJ")):
                 market = "A股"
@@ -522,14 +550,18 @@ def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: st
                 market = "港股"
         if drop_hk and (market == "港股" or code.endswith(".HK")):
             continue
+        default_item = default_by_code.get(code) or default_by_name.get(name) or {}
         dedupe_key = code or name
         if dedupe_key in seen_codes or name in seen_names:
             continue
         seen_codes.add(dedupe_key)
         seen_names.add(name)
-        segment = row_value(row, "产业链环节")
-        theme = row_value(row, "细分方向") or segment
-        role = row_value(row, "公司产品简介") or theme
+        segment = row_value(row, "产业链环节") or default_item.get("segment", "")
+        theme = row_value(row, "细分方向") or default_item.get("theme", "") or segment
+        role = row_value(row, "公司产品简介") or default_item.get("role", "") or theme
+        certainty = row_value(row, "供应链确定性") or default_item.get("certainty", "") or ""
+        if not certainty and default_item:
+            certainty = certainty_for_item(default_item)
         source_items.append(
             {
                 "name": name,
@@ -538,7 +570,7 @@ def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: st
                 "segment": segment,
                 "theme": theme,
                 "role": role,
-                "certainty": row_value(row, "供应链确定性"),
+                "certainty": certainty,
             }
         )
     return source_items
@@ -852,7 +884,7 @@ def certainty_for_item(item: Dict[str, str]) -> str:
         "300502.SZ",  # 新易盛：高速光模块龙头
         "601138.SH",  # 工业富联：AI服务器制造链条确定性较高
     }
-    high_related_segments = {"内存", "PCB", "MLCC", "ABF载板", "电源", "液冷", "光通信/CPO"}
+    high_related_segments = {"内存", "HBM/内存/存储", "PCB", "MLCC", "ABF载板", "电源", "液冷", "光通信/CPO"}
     if code in direct_supply:
         return "确定"
     if segment in high_related_segments:
@@ -889,10 +921,13 @@ def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str
     rows = []
     seen = set()
     stock_items = items if items is not None else AI_STOCKS
-    ordered_items = sorted(
-        enumerate(stock_items),
-        key=lambda pair: (SEGMENT_ORDER.get(pair[1]["segment"], 99), pair[0]),
-    )
+    if items is not None:
+        ordered_items = list(enumerate(stock_items))
+    else:
+        ordered_items = sorted(
+            enumerate(stock_items),
+            key=lambda pair: (SEGMENT_ORDER.get(pair[1]["segment"], 99), pair[0]),
+        )
     for _, item in ordered_items:
         code = item["code"]
         row_key = (code, item["segment"], item["theme"])
@@ -937,8 +972,7 @@ def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str
 
         name_map = hk_names if market == "港股" else a_names
         name = item.get("name") or name_map.get(code, "")
-        rows.append(
-            [
+        row = [
                 name,
                 market,
                 rubin_segment,
@@ -972,9 +1006,10 @@ def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str
                 *quarter_profit_forecasts,
                 fmt_pct_fraction(dividend_yield),
             ]
-        )
+        rows.append(row)
         time.sleep(args.pause)
-    rows.sort(key=lambda row: (SEGMENT_ORDER.get(row[2], 999), -row_market_cap(row), str(row[4])))
+    if items is None:
+        rows.sort(key=lambda row: (SEGMENT_ORDER.get(row[2], 999), -row_market_cap(row), str(row[4])))
     return rows[: args.max_rows]
 
 
