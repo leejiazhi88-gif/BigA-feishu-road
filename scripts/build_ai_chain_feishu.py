@@ -70,8 +70,10 @@ HEADERS = [
     "预测来源",
     "数据状态",
     "备注",
-] + QUARTER_PROFIT_HEADERS + [
+] + [
+    QUARTER_PROFIT_HEADERS[0],
     "2026Q2锁定预测(亿元)",
+    *QUARTER_PROFIT_HEADERS[1:],
     "股息率%",
 ]
 
@@ -1106,11 +1108,12 @@ def build_rows(
                 forecast_source,
                 status,
                 note,
-                *quarter_profit_forecasts,
+                quarter_profit_forecasts[0],
                 fmt_num_value(
                     (locked_quarter_values or {}).get(code)
                     or (locked_quarter_values or {}).get(name)
                 ),
+                *quarter_profit_forecasts[1:],
                 fmt_pct_fraction(dividend_yield),
             ]
         rows.append(row)
@@ -1144,6 +1147,8 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
         return HEADERS.index(title) + 1
 
     market_cap_col = header_col("市值(亿元)")
+    locked_quarter_col = header_col("2026Q2锁定预测(亿元)")
+    normal_q2_col = header_col("2026Q2净利润(亿元)")
     dividend_col = header_col("股息率%")
     pe_cols = [
         header_col("PE(TTM)"),
@@ -1245,6 +1250,23 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
                     actual_beat_green_ranges.append(cell_range)
                 else:
                     actual_miss_red_ranges.append(cell_range)
+        locked_value = row[locked_quarter_col - 1] if len(row) >= locked_quarter_col else ""
+        normal_q2_value = row[normal_q2_col - 1] if len(row) >= normal_q2_col else ""
+        if isinstance(locked_value, (int, float)) and isinstance(normal_q2_value, str):
+            actual_match = ACTUAL_VS_FORECAST_PATTERN.search(normal_q2_value)
+            if actual_match and locked_value != 0:
+                actual = float(actual_match.group(1))
+                delta_ratio = (actual - float(locked_value)) / abs(float(locked_value))
+                lock_range = (
+                    f"{sheet_id}!{column_name(locked_quarter_col)}{row_idx}:"
+                    f"{column_name(locked_quarter_col)}{row_idx}"
+                )
+                if abs(delta_ratio) <= 0.10:
+                    actual_match_blue_ranges.append(lock_range)
+                elif delta_ratio > 0.10:
+                    actual_beat_green_ranges.append(lock_range)
+                else:
+                    actual_miss_red_ranges.append(lock_range)
             else:
                 delta_ratio = (actual - forecast) / abs(forecast)
                 if abs(delta_ratio) <= 0.10:
