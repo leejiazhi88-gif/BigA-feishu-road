@@ -142,6 +142,7 @@ If Tushare HK endpoints hit rate limits, A-share data can still refresh normally
   - Actual more than 10% below forecast: red background
 - For source-sheet refreshes, keep the prior sheet's first unreported current-year quarter forecast unchanged until that quarter's actual report is available. Once reported, use that frozen forecast in the `上个Q预测` annotation.
 - The Q2 presentation places `2026Q2锁定预测(亿元)` immediately after the Q1 column. It is copied from the Q1-report snapshot (8/7 sheet), while the normal Q2 column continues to refresh independently. After Q2 reports, both the normal Q2 actual and the locked Q2 cell use the comparison color.
+- China Ping An (`601318.SH`) has no reliable Q3/Q4 single-quarter institutional forecasts in the current source. Its Q3/Q4 cells are model splits of the annual estimate, and the note must state this; the normal Q2 cell should show the actual only, without treating the post-report `report_rc` value as a prior-quarter Q2 forecast.
 - H:G style notes from prior edits:
   - G/H should not carry extra manual color.
   - Market cap should have no decimals.
