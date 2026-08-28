@@ -1061,28 +1061,21 @@ def build_rows(
             income = fetch_income(pro, code, args.refresh)
             forecast_profits, profit_yoy, forecast_pes, forecast_source = profit_cells(report, income, market_cap_yi)
             quarter_profit_forecasts = quarter_profit_cells(report, income)
+            locked_q2_display = ""
             if items is not None:
-                quarter_profit_forecasts = preserve_current_year_quarter_forecast(
-                    quarter_profit_forecasts,
-                    item,
-                    actual_quarter_profit_yi(income),
-                )
                 locked_q2 = (locked_quarter_values or {}).get(code) or (locked_quarter_values or {}).get(name)
-                if locked_q2 and len(quarter_profit_forecasts) > 1:
+                if locked_q2:
                     try:
                         locked_q2_number = float(locked_q2)
                     except (TypeError, ValueError):
                         locked_q2_number = None
-                    actual_q2_value = quarter_profit_forecasts[1]
-                    actual_q2_match = (
-                        ACTUAL_VS_FORECAST_PATTERN.search(actual_q2_value)
-                        if isinstance(actual_q2_value, str)
-                        else None
-                    )
-                    if locked_q2_number is not None and actual_q2_match:
-                        quarter_profit_forecasts[1] = (
-                            f"{actual_q2_match.group(1)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
-                        )
+                    actual_q2_value = quarter_profit_forecasts[1] if len(quarter_profit_forecasts) > 1 else ""
+                    actual_q2_match = ACTUAL_VS_FORECAST_PATTERN.search(actual_q2_value) if isinstance(actual_q2_value, str) else None
+                    if locked_q2_number is not None:
+                        if actual_q2_match:
+                            locked_q2_display = f"{actual_q2_match.group(1)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
+                        else:
+                            locked_q2_display = fmt_num_value(locked_q2_number)
             if not forecast_source:
                 status = "缺预测"
                 note = "未取到2025-2028 Q4券商预测"
@@ -1125,10 +1118,7 @@ def build_rows(
                 status,
                 note,
                 quarter_profit_forecasts[0],
-                fmt_num_value(
-                    (locked_quarter_values or {}).get(code)
-                    or (locked_quarter_values or {}).get(name)
-                ),
+                locked_q2_display,
                 *quarter_profit_forecasts[1:],
                 fmt_pct_fraction(dividend_yield),
             ]
@@ -1275,19 +1265,18 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
                 else:
                     actual_miss_red_ranges.append(cell_range)
         locked_value = row[locked_quarter_col - 1] if len(row) >= locked_quarter_col else ""
-        normal_q2_value = row[normal_q2_col - 1] if len(row) >= normal_q2_col else ""
-        if isinstance(locked_value, (int, float)) and isinstance(normal_q2_value, str):
-            actual_match = ACTUAL_VS_FORECAST_PATTERN.search(normal_q2_value)
-            if actual_match and locked_value != 0:
-                actual = float(actual_match.group(1))
-                delta_ratio = (actual - float(locked_value)) / abs(float(locked_value))
+        if isinstance(locked_value, str):
+            locked_match = ACTUAL_VS_FORECAST_PATTERN.search(locked_value)
+            if locked_match:
+                actual = float(locked_match.group(1))
+                forecast = float(locked_match.group(2))
                 lock_range = (
                     f"{sheet_id}!{column_name(locked_quarter_col)}{row_idx}:"
                     f"{column_name(locked_quarter_col)}{row_idx}"
                 )
-                if abs(delta_ratio) <= 0.10:
+                if forecast == 0 or abs((actual - forecast) / abs(forecast)) <= 0.10:
                     actual_match_blue_ranges.append(lock_range)
-                elif delta_ratio > 0.10:
+                elif actual > forecast:
                     actual_beat_green_ranges.append(lock_range)
                 else:
                     actual_miss_red_ranges.append(lock_range)
