@@ -140,6 +140,7 @@ If Tushare HK endpoints hit rate limits, A-share data can still refresh normally
   - Actual within +/-10% of forecast: blue background
   - Actual more than 10% above forecast: green background
   - Actual more than 10% below forecast: red background
+- For source-sheet refreshes, keep the prior sheet's first unreported current-year quarter forecast unchanged until that quarter's actual report is available. Once reported, use that frozen forecast in the `上个Q预测` annotation.
 - H:G style notes from prior edits:
   - G/H should not carry extra manual color.
   - Market cap should have no decimals.

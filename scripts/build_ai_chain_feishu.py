@@ -571,6 +571,11 @@ def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: st
                 "theme": theme,
                 "role": role,
                 "certainty": certainty,
+                **{
+                    f"source_{header}": row_value(row, header)
+                    for header in QUARTER_PROFIT_HEADERS
+                    if header in header_index
+                },
             }
         )
     return source_items
@@ -833,6 +838,59 @@ def quarter_profit_cells(report: pd.DataFrame, income: pd.DataFrame) -> List[str
     return cells
 
 
+def preserve_current_year_quarter_forecast(
+    cells: List[str], source_item: Dict[str, str], actuals: Dict[str, float]
+) -> List[str]:
+    """Keep the prior sheet's first unreported current-year quarter estimate."""
+    year = date.today().year
+    unreported = [
+        quarter
+        for quarter in range(1, 5)
+        if actuals.get(quarter_key(year, quarter)) is None
+    ]
+    if not unreported:
+        return cells
+    first_unreported = unreported[0]
+    first_year_index = (year - QUARTER_PROFIT_YEARS[0]) * 4
+    target_index = first_year_index + first_unreported - 1
+    if target_index < 0 or target_index >= len(cells):
+        return cells
+
+    old_target = source_item.get(f"source_{year}Q{first_unreported}", "")
+    if not old_target or ACTUAL_VS_FORECAST_PATTERN.search(old_target):
+        return cells
+    try:
+        frozen_forecast = float(old_target)
+    except (TypeError, ValueError):
+        return cells
+    if not np.isfinite(frozen_forecast):
+        return cells
+
+    result = list(cells)
+    result[target_index] = fmt_num(frozen_forecast)
+
+    # Once a quarter reports, compare its actual result with the old estimate.
+    for quarter in range(1, first_unreported):
+        old_value = source_item.get(f"source_{year}Q{quarter}", "")
+        if not old_value:
+            continue
+        actual_annotation = ACTUAL_VS_FORECAST_PATTERN.search(old_value)
+        if actual_annotation:
+            old_forecast = float(actual_annotation.group(2))
+        else:
+            try:
+                old_forecast = float(old_value)
+            except (TypeError, ValueError):
+                continue
+        index = first_year_index + quarter - 1
+        if index >= len(result) or not isinstance(result[index], str):
+            continue
+        actual_match = re.match(r"([-+]?\d+(?:\.\d+)?)", result[index])
+        if actual_match and np.isfinite(old_forecast):
+            result[index] = f"{actual_match.group(1)}（上个Q预测{fmt_fixed_decimal(old_forecast)}）"
+    return result
+
+
 def profit_cells(report: pd.DataFrame, income: pd.DataFrame, market_cap_yi: Optional[float]) -> tuple[Dict[int, str], Dict[int, str], Dict[int, str], str]:
     forecast_report = recent_report_frame(report, income)
     profit_values: Dict[int, Optional[float]] = {}
@@ -962,6 +1020,12 @@ def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str
             income = fetch_income(pro, code, args.refresh)
             forecast_profits, profit_yoy, forecast_pes, forecast_source = profit_cells(report, income, market_cap_yi)
             quarter_profit_forecasts = quarter_profit_cells(report, income)
+            if items is not None:
+                quarter_profit_forecasts = preserve_current_year_quarter_forecast(
+                    quarter_profit_forecasts,
+                    item,
+                    actual_quarter_profit_yi(income),
+                )
             if not forecast_source:
                 status = "缺预测"
                 note = "未取到2025-2028 Q4券商预测"
