@@ -979,7 +979,7 @@ def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str
                 item["theme"],
                 code,
                 item["role"],
-                item.get("certainty", certainty_for_item(item)),
+                item.get("certainty") or certainty_for_item(item),
                 fmt_int(market_cap_yi),
                 fmt_num(pe_ttm),
                 forecast_pes[2026],
@@ -1090,7 +1090,10 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
     actual_match_blue_ranges: List[str] = []
     actual_beat_green_ranges: List[str] = []
     actual_miss_red_ranges: List[str] = []
-    first_quarter_profit_col = header_col(QUARTER_PROFIT_HEADERS[0])
+    actual_quarter_profit_cols = [
+        header_col(QUARTER_PROFIT_HEADERS[0]),  # 2026Q1
+        header_col(QUARTER_PROFIT_HEADERS[1]),  # 2026Q2
+    ]
     for row_idx, row in enumerate(values, start=2):
         for col_idx in pe_cols:
             value = row[col_idx - 1] if len(row) >= col_idx else ""
@@ -1111,31 +1114,38 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
                 yoy_blue_ranges.append(cell_range)
             elif value >= 0.30:
                 yoy_high_green_ranges.append(cell_range)
-        actual_forecast_value = row[first_quarter_profit_col - 1] if len(row) >= first_quarter_profit_col else ""
-        if isinstance(actual_forecast_value, str):
+        for actual_quarter_profit_col in actual_quarter_profit_cols:
+            actual_forecast_value = (
+                row[actual_quarter_profit_col - 1]
+                if len(row) >= actual_quarter_profit_col
+                else ""
+            )
+            if not isinstance(actual_forecast_value, str):
+                continue
             match = ACTUAL_VS_FORECAST_PATTERN.search(actual_forecast_value)
-            if match:
-                actual = float(match.group(1))
-                forecast = float(match.group(2))
-                cell_range = (
-                    f"{sheet_id}!{column_name(first_quarter_profit_col)}{row_idx}:"
-                    f"{column_name(first_quarter_profit_col)}{row_idx}"
-                )
-                if forecast == 0:
-                    if abs(actual) <= 0.05:
-                        actual_match_blue_ranges.append(cell_range)
-                    elif actual > 0:
-                        actual_beat_green_ranges.append(cell_range)
-                    else:
-                        actual_miss_red_ranges.append(cell_range)
+            if not match:
+                continue
+            actual = float(match.group(1))
+            forecast = float(match.group(2))
+            cell_range = (
+                f"{sheet_id}!{column_name(actual_quarter_profit_col)}{row_idx}:"
+                f"{column_name(actual_quarter_profit_col)}{row_idx}"
+            )
+            if forecast == 0:
+                if abs(actual) <= 0.05:
+                    actual_match_blue_ranges.append(cell_range)
+                elif actual > 0:
+                    actual_beat_green_ranges.append(cell_range)
                 else:
-                    delta_ratio = (actual - forecast) / abs(forecast)
-                    if abs(delta_ratio) <= 0.10:
-                        actual_match_blue_ranges.append(cell_range)
-                    elif delta_ratio > 0.10:
-                        actual_beat_green_ranges.append(cell_range)
-                    else:
-                        actual_miss_red_ranges.append(cell_range)
+                    actual_miss_red_ranges.append(cell_range)
+            else:
+                delta_ratio = (actual - forecast) / abs(forecast)
+                if abs(delta_ratio) <= 0.10:
+                    actual_match_blue_ranges.append(cell_range)
+                elif delta_ratio > 0.10:
+                    actual_beat_green_ranges.append(cell_range)
+                else:
+                    actual_miss_red_ranges.append(cell_range)
     if green_ranges:
         styles.append({"ranges": green_ranges, "style": {"foreColor": "#00B050"}})
     if red_ranges:
