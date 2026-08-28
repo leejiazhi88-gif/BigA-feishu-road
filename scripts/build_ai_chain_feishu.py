@@ -1067,6 +1067,22 @@ def build_rows(
                     item,
                     actual_quarter_profit_yi(income),
                 )
+                locked_q2 = (locked_quarter_values or {}).get(code) or (locked_quarter_values or {}).get(name)
+                if locked_q2 and len(quarter_profit_forecasts) > 1:
+                    try:
+                        locked_q2_number = float(locked_q2)
+                    except (TypeError, ValueError):
+                        locked_q2_number = None
+                    actual_q2_value = quarter_profit_forecasts[1]
+                    actual_q2_match = (
+                        ACTUAL_VS_FORECAST_PATTERN.search(actual_q2_value)
+                        if isinstance(actual_q2_value, str)
+                        else None
+                    )
+                    if locked_q2_number is not None and actual_q2_match:
+                        quarter_profit_forecasts[1] = (
+                            f"{actual_q2_match.group(1)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
+                        )
             if not forecast_source:
                 status = "缺预测"
                 note = "未取到2025-2028 Q4券商预测"
@@ -1250,6 +1266,14 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
                     actual_beat_green_ranges.append(cell_range)
                 else:
                     actual_miss_red_ranges.append(cell_range)
+            else:
+                delta_ratio = (actual - forecast) / abs(forecast)
+                if abs(delta_ratio) <= 0.10:
+                    actual_match_blue_ranges.append(cell_range)
+                elif delta_ratio > 0.10:
+                    actual_beat_green_ranges.append(cell_range)
+                else:
+                    actual_miss_red_ranges.append(cell_range)
         locked_value = row[locked_quarter_col - 1] if len(row) >= locked_quarter_col else ""
         normal_q2_value = row[normal_q2_col - 1] if len(row) >= normal_q2_col else ""
         if isinstance(locked_value, (int, float)) and isinstance(normal_q2_value, str):
@@ -1267,14 +1291,6 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
                     actual_beat_green_ranges.append(lock_range)
                 else:
                     actual_miss_red_ranges.append(lock_range)
-            else:
-                delta_ratio = (actual - forecast) / abs(forecast)
-                if abs(delta_ratio) <= 0.10:
-                    actual_match_blue_ranges.append(cell_range)
-                elif delta_ratio > 0.10:
-                    actual_beat_green_ranges.append(cell_range)
-                else:
-                    actual_miss_red_ranges.append(cell_range)
     if green_ranges:
         styles.append({"ranges": green_ranges, "style": {"foreColor": "#00B050"}})
     if red_ranges:
