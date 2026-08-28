@@ -71,6 +71,7 @@ HEADERS = [
     "数据状态",
     "备注",
 ] + QUARTER_PROFIT_HEADERS + [
+    "2026Q2锁定预测(亿元)",
     "股息率%",
 ]
 
@@ -261,6 +262,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--feishu-env", default=DEFAULT_FEISHU_ENV)
     parser.add_argument("--source-spreadsheet-token", default="")
     parser.add_argument("--source-sheet-id", default="")
+    parser.add_argument("--locked-source-spreadsheet-token", default="")
+    parser.add_argument("--locked-source-sheet-id", default="")
     parser.add_argument("--drop-hk", action="store_true")
     parser.add_argument("--start-date", default="20240501")
     parser.add_argument("--end-date", default=date.today().strftime("%Y%m%d"))
@@ -579,6 +582,37 @@ def load_items_from_source_sheet(token: str, pro, spreadsheet: str, sheet_id: st
             }
         )
     return source_items
+
+
+def load_locked_quarter_values(
+    token: str, spreadsheet: str, sheet_id: str, quarter_header: str
+) -> Dict[str, str]:
+    response = request_json(
+        f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet}/values/{sheet_id}!A1:AZ500",
+        token=token,
+    )
+    values = response.get("data", {}).get("valueRange", {}).get("values", [])
+    if not values:
+        return {}
+    headers = [cell_text(value) for value in values[0]]
+    header_index = {header: index for index, header in enumerate(headers) if header}
+    name_index = header_index.get("名称")
+    code_index = header_index.get("代码")
+    quarter_index = header_index.get(quarter_header)
+    if quarter_index is None:
+        return {}
+    result: Dict[str, str] = {}
+    for row in values[1:]:
+        name = cell_text(row[name_index]) if name_index is not None and len(row) > name_index else ""
+        code = cell_text(row[code_index]) if code_index is not None and len(row) > code_index else ""
+        value = cell_text(row[quarter_index]) if len(row) > quarter_index else ""
+        if not value or ACTUAL_VS_FORECAST_PATTERN.search(value):
+            continue
+        if code:
+            result[code] = value
+        if name:
+            result[name] = value
+    return result
 
 
 def pct_return(history: pd.DataFrame, days: int) -> Optional[float]:
@@ -974,7 +1008,12 @@ def row_market_cap(row: List[object]) -> float:
         return 0.0
 
 
-def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str]]] = None) -> List[List[object]]:
+def build_rows(
+    pro,
+    args: argparse.Namespace,
+    items: Optional[List[Dict[str, str]]] = None,
+    locked_quarter_values: Optional[Dict[str, str]] = None,
+) -> List[List[object]]:
     a_names, hk_names = latest_name_maps(pro)
     rows = []
     seen = set()
@@ -1068,6 +1107,10 @@ def build_rows(pro, args: argparse.Namespace, items: Optional[List[Dict[str, str
                 status,
                 note,
                 *quarter_profit_forecasts,
+                fmt_num_value(
+                    (locked_quarter_values or {}).get(code)
+                    or (locked_quarter_values or {}).get(name)
+                ),
                 fmt_pct_fraction(dividend_yield),
             ]
         rows.append(row)
@@ -1277,7 +1320,16 @@ def main() -> None:
             args.drop_hk,
         )
         print(f"Loaded {len(source_items)} source items from Feishu sheet {args.source_sheet_id}")
-    rows = build_rows(pro, args, source_items)
+    locked_quarter_values = None
+    if args.locked_source_spreadsheet_token and args.locked_source_sheet_id:
+        locked_quarter_values = load_locked_quarter_values(
+            feishu_token,
+            args.locked_source_spreadsheet_token,
+            args.locked_source_sheet_id,
+            "2026Q2净利润(亿元)",
+        )
+        print(f"Loaded {len(locked_quarter_values)} locked Q2 forecasts")
+    rows = build_rows(pro, args, source_items, locked_quarter_values)
     export_path = EXPORT_DIR / "ai_chain_stocks.csv"
     pd.DataFrame(rows, columns=HEADERS).to_csv(export_path, index=False)
     if args.spreadsheet_token:
