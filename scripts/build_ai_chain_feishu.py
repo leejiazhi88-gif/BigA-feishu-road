@@ -1089,8 +1089,11 @@ def build_rows(
                     if locked_q2_number is not None:
                         if actual_q2_match:
                             locked_q2_display = f"{actual_q2_match.group(1)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
+                            # The normal actual column must not expose a
+                            # cumulative/annual report_rc value as a Q2 prior
+                            # forecast. The locked column is the audit anchor.
+                            quarter_profit_forecasts[1] = fmt_fixed_decimal(float(actual_q2_match.group(1)))
                             if code == "601318.SH":
-                                quarter_profit_forecasts[1] = fmt_fixed_decimal(float(actual_q2_match.group(1)))
                                 note = "Q3/Q4暂无机构单季预测，按历史季节性模型拆分；全年预测以年度预测列为准"
                         else:
                             locked_q2_display = fmt_num_value(locked_q2_number)
