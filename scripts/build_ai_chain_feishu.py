@@ -1127,6 +1127,13 @@ def build_rows(
                         if latest_q2_forecast is not None and locked_q2_number != 0:
                             difference = abs(latest_q2_forecast - locked_q2_number) / abs(locked_q2_number)
                             if difference > 0.40:
+                                actual_q2 = actual_quarter_values.get("2026Q2")
+                                if actual_q2 is not None:
+                                    quarter_profit_forecasts[1] = (
+                                        f"{fmt_fixed_decimal(actual_q2)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
+                                    )
+                                else:
+                                    quarter_profit_forecasts[1] = fmt_num_value(locked_q2_number)
                                 note = (
                                     f"Q2预测校验：锁定{fmt_fixed_decimal(locked_q2_number)}，"
                                     f"最新{fmt_fixed_decimal(latest_q2_forecast)}；"
@@ -1134,7 +1141,8 @@ def build_rows(
                                     f"（{fmt_fixed_decimal(max(latest_q2_forecast, locked_q2_number))}-"
                                     f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}）/"
                                     f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}="
-                                    f"{difference:.1%}；疑似累计口径，需人工核验"
+                                    f"{difference:.1%}；判定为累计/非单季口径，"
+                                    f"AG已修复为锁定单季预测{fmt_fixed_decimal(locked_q2_number)}"
                                 )
             if not forecast_source:
                 status = "缺预测"
