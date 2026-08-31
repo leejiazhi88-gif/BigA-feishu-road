@@ -1117,6 +1117,25 @@ def build_rows(
                                     f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}="
                                     f"{difference:.1%}；疑似累计口径，需人工核验"
                                 )
+                    # Preserve the audit note even when the row already has
+                    # an actual Q2 value and the display column is rewritten.
+                    if locked_q2_number is not None:
+                        latest_forecasts = forecast_quarter_profit_yi(recent_report_frame(report, income))
+                        latest_q2_forecast = forecast_for_actual_quarter(
+                            actual_quarter_values, latest_forecasts, 2026, 2
+                        )
+                        if latest_q2_forecast is not None and locked_q2_number != 0:
+                            difference = abs(latest_q2_forecast - locked_q2_number) / abs(locked_q2_number)
+                            if difference > 0.40:
+                                note = (
+                                    f"Q2预测校验：锁定{fmt_fixed_decimal(locked_q2_number)}，"
+                                    f"最新{fmt_fixed_decimal(latest_q2_forecast)}；"
+                                    f"差异=（大数-小数）/小数="
+                                    f"{fmt_fixed_decimal(max(latest_q2_forecast, locked_q2_number))}-"
+                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}/"
+                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}="
+                                    f"{difference:.1%}；疑似累计口径，需人工核验"
+                                )
             if not forecast_source:
                 status = "缺预测"
                 note = "未取到2025-2028 Q4券商预测"
