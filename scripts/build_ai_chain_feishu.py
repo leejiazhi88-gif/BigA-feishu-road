@@ -780,6 +780,19 @@ def recent_report_frame(report: pd.DataFrame, income: pd.DataFrame) -> pd.DataFr
     return recent if not recent.empty else report
 
 
+def prior_report_frame(report: pd.DataFrame, income: pd.DataFrame) -> pd.DataFrame:
+    """Return estimates published before the latest actual announcement."""
+    if report.empty or "report_date" not in report.columns:
+        return report
+    cutoff = latest_actual_announcement_date(income)
+    if cutoff is None:
+        return report
+    frame = report.copy()
+    frame["report_date_num"] = pd.to_numeric(frame["report_date"], errors="coerce")
+    prior = frame[frame["report_date_num"] < cutoff].copy()
+    return prior if not prior.empty else report
+
+
 def quarter_key(year: int, quarter: int) -> str:
     return f"{year}Q{quarter}"
 
@@ -852,7 +865,9 @@ def forecast_for_actual_quarter(actuals: Dict[str, float], forecasts: Dict[str, 
 def quarter_profit_cells(report: pd.DataFrame, income: pd.DataFrame) -> List[str]:
     actuals = actual_quarter_profit_yi(income)
     recent_report = recent_report_frame(report, income)
+    prior_report = prior_report_frame(report, income)
     forecasts = forecast_quarter_profit_yi(recent_report)
+    prior_forecasts = forecast_quarter_profit_yi(prior_report)
     cells: List[str] = []
     for year in QUARTER_PROFIT_YEARS:
         modeled = modeled_quarter_profit_yi(actuals, forecasts, year)
@@ -862,7 +877,7 @@ def quarter_profit_cells(report: pd.DataFrame, income: pd.DataFrame) -> List[str
             forecast = modeled.get(quarter)
             if actual is not None:
                 actual_text = fmt_fixed_decimal(actual)
-                prior_forecast = forecast_for_actual_quarter(actuals, forecasts, year, quarter)
+                prior_forecast = forecast_for_actual_quarter(actuals, prior_forecasts, year, quarter)
                 if prior_forecast is not None:
                     cells.append(f"{actual_text}（上个Q预测{fmt_fixed_decimal(prior_forecast)}）")
                 else:
