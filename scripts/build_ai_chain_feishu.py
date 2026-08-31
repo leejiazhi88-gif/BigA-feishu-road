@@ -877,7 +877,7 @@ def quarter_profit_cells(report: pd.DataFrame, income: pd.DataFrame) -> List[str
             forecast = modeled.get(quarter)
             if actual is not None:
                 actual_text = fmt_fixed_decimal(actual)
-                prior_forecast = forecast_for_actual_quarter(actuals, prior_forecasts, year, quarter)
+                prior_forecast = forecast_for_actual_quarter(actuals, forecasts, year, quarter)
                 if prior_forecast is not None:
                     cells.append(f"{actual_text}（上个Q预测{fmt_fixed_decimal(prior_forecast)}）")
                 else:
@@ -1090,10 +1090,10 @@ def build_rows(
                     if locked_q2_number is not None:
                         actual_q2 = actual_quarter_values.get("2026Q2")
                         if actual_q2 is not None:
-                            # Keep the normal Q2 column as actual only. The
-                            # locked column carries the historical benchmark.
+                            # The locked column carries the historical
+                            # benchmark; the normal Q2 column keeps the live
+                            # forecast annotation from quarter_profit_cells.
                             locked_q2_display = f"{fmt_fixed_decimal(actual_q2)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
-                            quarter_profit_forecasts[1] = fmt_fixed_decimal(actual_q2)
                             if code == "601318.SH":
                                 note = "Q3/Q4暂无机构单季预测，按历史季节性模型拆分；全年预测以年度预测列为准"
                         else:
