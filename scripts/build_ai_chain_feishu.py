@@ -1076,6 +1076,7 @@ def build_rows(
             income = fetch_income(pro, code, args.refresh)
             forecast_profits, profit_yoy, forecast_pes, forecast_source = profit_cells(report, income, market_cap_yi)
             quarter_profit_forecasts = quarter_profit_cells(report, income)
+            actual_quarter_values = actual_quarter_profit_yi(income)
             locked_q2_display = ""
             if items is not None:
                 locked_q2 = (locked_quarter_values or {}).get(code) or (locked_quarter_values or {}).get(name)
@@ -1087,12 +1088,12 @@ def build_rows(
                     actual_q2_value = quarter_profit_forecasts[1] if len(quarter_profit_forecasts) > 1 else ""
                     actual_q2_match = ACTUAL_VS_FORECAST_PATTERN.search(actual_q2_value) if isinstance(actual_q2_value, str) else None
                     if locked_q2_number is not None:
-                        if actual_q2_match:
-                            locked_q2_display = f"{actual_q2_match.group(1)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
-                            # The normal actual column must not expose a
-                            # cumulative/annual report_rc value as a Q2 prior
-                            # forecast. The locked column is the audit anchor.
-                            quarter_profit_forecasts[1] = fmt_fixed_decimal(float(actual_q2_match.group(1)))
+                        actual_q2 = actual_quarter_values.get("2026Q2")
+                        if actual_q2 is not None:
+                            # Keep the normal Q2 column as actual only. The
+                            # locked column carries the historical benchmark.
+                            locked_q2_display = f"{fmt_fixed_decimal(actual_q2)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
+                            quarter_profit_forecasts[1] = fmt_fixed_decimal(actual_q2)
                             if code == "601318.SH":
                                 note = "Q3/Q4暂无机构单季预测，按历史季节性模型拆分；全年预测以年度预测列为准"
                         else:
@@ -1301,6 +1302,18 @@ def apply_sheet_styles(token: str, spreadsheet: str, sheet_id: str, values: List
                     actual_beat_green_ranges.append(lock_range)
                 else:
                     actual_miss_red_ranges.append(lock_range)
+                normal_q2_value = row[normal_q2_col - 1] if len(row) >= normal_q2_col else ""
+                if isinstance(normal_q2_value, (int, float)):
+                    normal_range = (
+                        f"{sheet_id}!{column_name(normal_q2_col)}{row_idx}:"
+                        f"{column_name(normal_q2_col)}{row_idx}"
+                    )
+                    if forecast == 0 or abs((float(normal_q2_value) - forecast) / abs(forecast)) <= 0.10:
+                        actual_match_blue_ranges.append(normal_range)
+                    elif float(normal_q2_value) > forecast:
+                        actual_beat_green_ranges.append(normal_range)
+                    else:
+                        actual_miss_red_ranges.append(normal_range)
     if green_ranges:
         styles.append({"ranges": green_ranges, "style": {"foreColor": "#00B050"}})
     if red_ranges:
