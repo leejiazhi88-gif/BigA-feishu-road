@@ -1112,8 +1112,8 @@ def build_rows(
                                     f"Q2预测校验：锁定{fmt_fixed_decimal(locked_q2_number)}，"
                                     f"最新{fmt_fixed_decimal(latest_q2_forecast)}；"
                                     f"差异=（大数-小数）/小数="
-                                    f"{fmt_fixed_decimal(max(latest_q2_forecast, locked_q2_number))}-"
-                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}/"
+                                    f"（{fmt_fixed_decimal(max(latest_q2_forecast, locked_q2_number))}-"
+                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}）/"
                                     f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}="
                                     f"{difference:.1%}；疑似累计口径，需人工核验"
                                 )
@@ -1131,8 +1131,8 @@ def build_rows(
                                     f"Q2预测校验：锁定{fmt_fixed_decimal(locked_q2_number)}，"
                                     f"最新{fmt_fixed_decimal(latest_q2_forecast)}；"
                                     f"差异=（大数-小数）/小数="
-                                    f"{fmt_fixed_decimal(max(latest_q2_forecast, locked_q2_number))}-"
-                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}/"
+                                    f"（{fmt_fixed_decimal(max(latest_q2_forecast, locked_q2_number))}-"
+                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}）/"
                                     f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}="
                                     f"{difference:.1%}；疑似累计口径，需人工核验"
                                 )
