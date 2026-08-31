@@ -15,6 +15,7 @@ This note records the working context for continuing the AI industry-chain Feish
   - `2026-06-15`
   - `2026-06-17`
   - `2026-08-26`
+  - `2026-08-28`
 - Marker sheet: `颜色标记`
 
 ## Local Setup On A New Computer
