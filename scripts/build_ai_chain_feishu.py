@@ -37,19 +37,6 @@ QUARTER_PROFIT_HEADERS = [
     for quarter in range(1, 5)
 ]
 ACTUAL_VS_FORECAST_PATTERN = re.compile(r"([-+]?\d+(?:\.\d+)?)\s*（上个Q预测\s*([-+]?\d+(?:\.\d+)?)）")
-Q2_MODEL_AUDIT_CODES = {
-    "688808.SH",  # 联讯仪器
-    "002594.SZ",  # 比亚迪
-    "000338.SZ",  # 潍柴动力
-    "603259.SH",  # 药明康德
-    "688235.SH",  # 百济神州
-    "300760.SZ",  # 迈瑞医疗
-    "600309.SH",  # 万华化学
-    "600028.SH",  # 中国石化
-    "601919.SH",  # 中远海控
-}
-
-
 HEADERS = [
     "名称",
     "市场",
@@ -873,17 +860,51 @@ def forecast_for_actual_quarter(actuals: Dict[str, float], forecasts: Dict[str, 
     return annual_forecast * weights.get(quarter, 0.25)
 
 
-def audited_q2_model_forecast(
-    report: pd.DataFrame, income: pd.DataFrame
-) -> tuple[Optional[float], Optional[float], float]:
-    """Derive an auditable Q2 estimate from pre-announcement annual consensus."""
+def pre_result_q2_model_forecast(
+    report: pd.DataFrame, income: pd.DataFrame, lookback_days: int = 120
+) -> tuple[Optional[float], Optional[float], float, int]:
+    """Derive Q2 from the latest pre-result annual consensus and seasonality."""
     actuals = actual_quarter_profit_yi(income)
-    prior_forecasts = forecast_quarter_profit_yi(prior_report_frame(report, income))
-    annual_forecast = prior_forecasts.get("2026Q4")
     q2_weight = historical_quarter_weights(actuals).get(2, 0.25)
-    if annual_forecast is None:
-        return None, None, q2_weight
-    return annual_forecast * q2_weight, annual_forecast, q2_weight
+    cutoff = latest_actual_announcement_date(income)
+    if cutoff is None or report.empty:
+        return None, None, q2_weight, 0
+
+    frame = report.copy()
+    frame["report_date_num"] = pd.to_numeric(frame.get("report_date"), errors="coerce")
+    frame["np"] = pd.to_numeric(frame.get("np"), errors="coerce")
+    frame = frame[
+        (frame.get("quarter").astype(str) == "2026Q4")
+        & pd.notna(frame["np"])
+        & (frame["report_date_num"] < cutoff)
+        & (frame["report_date_num"] >= cutoff - lookback_days)
+    ].copy()
+    if frame.empty:
+        return None, None, q2_weight, 0
+
+    # One institution can issue several reports. Keep its latest pre-result
+    # annual estimate so repeated coverage cannot skew the consensus.
+    institution_key = frame.get("org_name", pd.Series("", index=frame.index)).fillna("")
+    author_key = frame.get("author_name", pd.Series("", index=frame.index)).fillna("")
+    frame["_institution_key"] = institution_key.astype(str).str.strip()
+    frame.loc[frame["_institution_key"] == "", "_institution_key"] = author_key.astype(str).str.strip()
+    frame.loc[frame["_institution_key"] == "", "_institution_key"] = frame.index.astype(str)
+    frame = frame.sort_values("report_date_num").drop_duplicates("_institution_key", keep="last")
+    annual_forecast = float(frame["np"].median() / 10000.0)
+    if not np.isfinite(annual_forecast):
+        return None, None, q2_weight, 0
+    return annual_forecast * q2_weight, annual_forecast, q2_weight, len(frame)
+
+
+def q2_fallback_from_q1_seasonality(actuals: Dict[str, float]) -> tuple[Optional[float], Optional[float]]:
+    """Estimate Q2 from the current Q1 result and last year's Q2/Q1 relationship."""
+    current_q1 = actuals.get("2026Q1")
+    prior_q1 = actuals.get("2025Q1")
+    prior_q2 = actuals.get("2025Q2")
+    if current_q1 is None or prior_q1 is None or prior_q2 is None or abs(prior_q1) < 0.001:
+        return None, None
+    q2_to_q1_ratio = prior_q2 / prior_q1
+    return current_q1 * q2_to_q1_ratio, q2_to_q1_ratio
 
 
 def quarter_profit_cells(report: pd.DataFrame, income: pd.DataFrame) -> List[str]:
@@ -1102,11 +1123,11 @@ def build_rows(
             quarter_profit_forecasts = quarter_profit_cells(report, income)
             actual_quarter_values = actual_quarter_profit_yi(income)
             locked_q2_display = ""
+            locked_q2_number = None
             if items is not None:
                 locked_q2 = (locked_quarter_values or {}).get(code) or (
                     locked_quarter_values or {}
                 ).get(item.get("name", ""))
-                locked_q2_number = None
                 if locked_q2:
                     try:
                         locked_q2_number = float(locked_q2)
@@ -1123,43 +1144,62 @@ def build_rows(
                                 note = "Q3/Q4暂无机构单季预测，按历史季节性模型拆分；全年预测以年度预测列为准"
                         else:
                             locked_q2_display = fmt_num_value(locked_q2_number)
-                        latest_forecasts = forecast_quarter_profit_yi(recent_report_frame(report, income))
-                        latest_q2_forecast = forecast_for_actual_quarter(
-                            actual_quarter_values,
-                            latest_forecasts,
-                            2026,
-                            2,
-                        )
-                        if latest_q2_forecast is not None and locked_q2_number not in (None, 0):
-                            difference = abs(latest_q2_forecast - locked_q2_number) / abs(locked_q2_number)
-                            if difference > 0.40:
-                                note = (
-                                    f"Q2预测校验：锁定{fmt_fixed_decimal(locked_q2_number)}，"
-                                    f"最新{fmt_fixed_decimal(latest_q2_forecast)}；"
-                                    f"差异=（大数-小数）/小数="
-                                    f"（{fmt_fixed_decimal(max(latest_q2_forecast, locked_q2_number))}-"
-                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}）/"
-                                    f"{fmt_fixed_decimal(min(latest_q2_forecast, locked_q2_number))}="
-                                    f"{difference:.1%}；疑似累计口径，需人工核验"
-                                )
 
-                # Some report_rc Q2 labels are half-year cumulative or annual estimates,
-                # not a pre-result single-quarter consensus. For audited rows, construct
-                # the Q2 comparison from the pre-announcement annual consensus and the
-                # company's historical Q2 seasonality instead.
-                if code in Q2_MODEL_AUDIT_CODES and actual_quarter_values.get("2026Q2") is not None:
-                    model_q2, prior_annual, q2_weight = audited_q2_model_forecast(report, income)
-                    if model_q2 is not None and prior_annual is not None:
-                        actual_q2 = actual_quarter_values["2026Q2"]
-                        quarter_profit_forecasts[1] = (
-                            f"{fmt_fixed_decimal(actual_q2)}（上个Q预测{fmt_fixed_decimal(model_q2)}）"
-                        )
+            actual_q2 = actual_quarter_values.get("2026Q2")
+            if actual_q2 is not None:
+                model_q2, prior_annual, q2_weight, sample_size = pre_result_q2_model_forecast(
+                    report, income
+                )
+                if model_q2 is not None and prior_annual is not None:
+                    quarter_profit_forecasts[1] = (
+                        f"{fmt_fixed_decimal(actual_q2)}（上个Q预测{fmt_fixed_decimal(model_q2)}）"
+                    )
+                    if locked_q2_number is None:
                         audit_note = (
-                            f"Q2预测校验：财报前2026全年预测{fmt_fixed_decimal(prior_annual)}×"
+                            f"AG Q2预测校验：无8/7锁定值，采用财报前120日内{sample_size}家机构"
+                            f"最新2026全年预测中位数{fmt_fixed_decimal(prior_annual)}×"
                             f"历史Q2占比{q2_weight:.1%}={fmt_fixed_decimal(model_q2)}；"
-                            f"report_rc的Q2字段无法确认单季口径，未采用"
+                            f"未采用report_rc Q2字段"
                         )
                         note = f"{note}；{audit_note}" if note else audit_note
+                    elif locked_q2_number != 0:
+                        difference = abs(model_q2 - locked_q2_number) / min(
+                            abs(model_q2), abs(locked_q2_number)
+                        )
+                        if difference > 0.40:
+                            audit_note = (
+                                f"AG Q2预测校验：8/7锁定{fmt_fixed_decimal(locked_q2_number)}，"
+                                f"财报前120日内{sample_size}家机构最新全年预测中位数"
+                                f"{fmt_fixed_decimal(prior_annual)}×历史Q2占比{q2_weight:.1%}="
+                                f"{fmt_fixed_decimal(model_q2)}；差异{difference:.1%}，"
+                                f"AG采用近期预测，未采用report_rc Q2字段"
+                            )
+                            note = f"{note}；{audit_note}" if note else audit_note
+                elif locked_q2_number is not None:
+                    # No valid recent annual estimates are available. The 8/7
+                    # snapshot remains the only defensible pre-result baseline.
+                    quarter_profit_forecasts[1] = (
+                        f"{fmt_fixed_decimal(actual_q2)}（上个Q预测{fmt_fixed_decimal(locked_q2_number)}）"
+                    )
+                    fallback_note = "AG Q2预测校验：财报前120日无可用年度预测，沿用8/7锁定单季预测"
+                    note = f"{note}；{fallback_note}" if note else fallback_note
+                else:
+                    fallback_q2, q2_to_q1_ratio = q2_fallback_from_q1_seasonality(
+                        actual_quarter_values
+                    )
+                    if fallback_q2 is not None and q2_to_q1_ratio is not None:
+                        quarter_profit_forecasts[1] = (
+                            f"{fmt_fixed_decimal(actual_q2)}（上个Q预测{fmt_fixed_decimal(fallback_q2)}）"
+                        )
+                        fallback_note = (
+                            f"AG Q2预测校验：无8/7锁定值及财报前120日年度一致预期，"
+                            f"采用2026Q1实际×2025年Q2/Q1季节性系数"
+                            f"{q2_to_q1_ratio:.2f}={fmt_fixed_decimal(fallback_q2)}"
+                        )
+                        note = f"{note}；{fallback_note}" if note else fallback_note
+                    else:
+                        unavailable_note = "AG Q2预测缺失：无8/7锁定值、近120日年度预测及可用季节性，保留实际值"
+                        note = f"{note}；{unavailable_note}" if note else unavailable_note
             if not forecast_source:
                 status = "缺预测"
                 note = "未取到2025-2028 Q4券商预测"
